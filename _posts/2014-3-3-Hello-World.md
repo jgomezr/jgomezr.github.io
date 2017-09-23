@@ -1,10 +1,9 @@
 ---
 layout: post
-title: You're up and running!
+title: El inicio
+published: true
 ---
 
-Next you can update your site name, avatar and other options using the _config.yml file in the root of your repository (shown below).
+Mi historia como desarrollador comienza en 1999, en el Grupo Scout 38 Valeria, donde para ganarme la especialidad de computación desarrollé como proyecto la página web del grupo scout por aquellos años solo teniamos la web 1.0 la pagina era estatica y el dominio era gratuito de una empresa que se llamaba 8m.com.
 
-![_config.yml]({{ site.baseurl }}/images/config.png)
-
-The easiest way to make your first post is to edit this one. Go into /_posts/ and update the Hello World markdown file. For more instructions head over to the [Jekyll Now repository](https://github.com/barryclark/jekyll-now) on GitHub.
+Ya el resto es historia, con el paso del tiempo he comenzado a explorar otras tecnologías y lenguajes que me han permitido creaar soluciones para los retos del día a día.
