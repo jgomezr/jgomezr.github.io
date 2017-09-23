@@ -2,14 +2,15 @@
 layout: page
 title: About
 permalink: /about/
+published: true
 ---
 
 Some information about you!
 
-### More Information
+### Más información
 
-A place to include any other types of information that you'd like to include about yourself.
+Desarrollo paginas y aplicaciones desde 1999
 
-### Contact me
+### Contactame
 
-[email@domain.com](mailto:email@domain.com)
+[julian.gomez.rios@gmail.com](mailto:julian.gomez.rios@gmail.com)
