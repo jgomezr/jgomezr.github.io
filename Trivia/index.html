@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="manifest" href="manifest.json">
+  <meta charset="utf-8">
+  <title>Trivia scout</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="white"/>
+  <meta name="apple-mobile-web-app-capable" content="yes">  
+  <meta name="apple-mobile-web-app-status-bar-style" content="black"> 
+  <meta name="apple-mobile-web-app-title" content="Trivia scout">
+  <link rel="apple-touch-icon" href="/images/icon.png">
+  <meta name="msapplication-TileColor" content="#FFFFFF"> 
+  <meta name="description" content="Trivia scout aplicación para pasar el rato poniendo a prueba nuestro conocimiento scout">
+</head>
+<body>
+	<div id="quiz"></div>
+	<button id="submit">Obtener los resultados</button>
+	<div id="results"></div>
+  <header class="header">
+    <h1>
+      Trivia scout
+      <a href="https://github.com/jgomezr" class="powered-by">
+        Powered by Puma Pardo
+      </a>
+    </h1>
+    <button id="butInstall" aria-label="Install" hidden>Instalar</button>
+    <button id="butRefresh" aria-label="Refresh">Refrescar</button>
+  </header>
+
+	<script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => {
+          console.log('Service worker registered.', reg);
+        });
+      });
+    } 
+  </script>
+  <script src="js/quiz.js"></script>
+  <script src="js/install.js"></script>
+</body>
+</html>
