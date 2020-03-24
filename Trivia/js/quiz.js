@@ -1,19 +1,51 @@
 var myQuestions = [
 	{
-		question: "What is 10/2?",
+		question: "¿En que año nació Baden Powell?",
 		answers: {
-			a: '3',
-			b: '5',
-			c: '115'
+			a: '1957',
+			b: '1857',
+			c: '1941'
 		},
 		correctAnswer: 'b'
 	},
 	{
-		question: "What is 30/3?",
+		question: "¿Dónde murió Baden Powell?",
 		answers: {
-			a: '3',
-			b: '5',
-			c: '10'
+			a: 'Londres, Inglaterra',
+			b: 'Mafeking, Sur Africa',
+			c: 'Nyeri, Kenia'
+		},
+		correctAnswer: 'c'
+	},{
+		question: "¿Quién fue el primer Comisionado Rover?",
+		answers: {
+			a: 'Ulick de Burgh',
+			b: 'El Príncipe Gustavo Adolfo de Suecia',
+			c: 'William Henry Smyth'
+		},
+		correctAnswer: 'a'
+	},{
+		question: "¿Cuando fue publicado el libro Roverismo hacia el éxito?",
+		answers: {
+			a: '1918',
+			b: '1922',
+			c: '1908'
+		},
+		correctAnswer: 'b'
+	},{
+		question: "¿Cuál fue el primer libro Rover?",
+		answers: {
+			a: 'Roverismo hacia el éxito',
+			b: 'Reglamento de los Rovers',
+			c: 'Notas para el adiestramiento de los Rovers'
+		},
+		correctAnswer: 'b'
+	},{
+		question: "¿En qué año se realizó el primer Rover Moot?",
+		answers: {
+			a: '1908',
+			b: '1920',
+			c: '1931'
 		},
 		correctAnswer: 'c'
 	}
