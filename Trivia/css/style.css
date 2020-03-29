@@ -25,7 +25,7 @@ body{
   color: #fff;
   font-size: 20px;
   height: 56px;
-  padding: 16px 16px 0 16px;
+  padding: 16px;
   will-change: transform;
   z-index: 1000;
 }
@@ -74,4 +74,15 @@ body{
 }
 #submit:hover{
 	background-color: #3a8;
+}
+#compartir{
+  font-family: sans-serif;
+  font-size: 20px;
+  background-color: #073278;
+  color: #fff;
+  border: 0px;
+  border-radius: 3px;
+  padding: 10px;
+  cursor: pointer;
+  margin-bottom: 10px;
 }
