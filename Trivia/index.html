@@ -36,6 +36,7 @@
 	<button id="submit">Obtener los resultados</button>
   <div>
     <div id="results"></div>
+    <div id="resultButton"><button id="compartir"onclick="share()">Compartir en Facebook</button></div>
   </div>
   <header class="header">
     <h1>
@@ -60,6 +61,31 @@
   </script>
   <script src="js/quiz.js"></script>
   <script src="js/install.js"></script>
+  <script type="text/javascript">
+    function share(){
+      var result = document.getElementById('results').innerHTML;
+      var res = result.slice(0,1);
+      if (res == '1') {
+        window.open("https://www.facebook.com/sharer.php?u=http://jgomezr.github.io/Trivia/score/1.html&amp;t=Trivia%20Scout"); 
+      }else if (res == '2') {
+        window.open("https://www.facebook.com/sharer.php?u=http://jgomezr.github.io/Trivia/score/2.html&amp;t=Trivia%20Scout"); 
+      }else if (res == '3') {
+        window.open("https://www.facebook.com/sharer.php?u=http://jgomezr.github.io/Trivia/score/3.html&amp;t=Trivia%20Scout"); 
+      }else if (res == '4') {
+        window.open("https://www.facebook.com/sharer.php?u=http://jgomezr.github.io/Trivia/score/4.html&amp;t=Trivia%20Scout"); 
+      }else if (res == '5') {
+        window.open("https://www.facebook.com/sharer.php?u=http://jgomezr.github.io/Trivia/score/5.html&amp;t=Trivia%20Scout"); 
+      }else if (res == '6') {
+        window.open("https://www.facebook.com/sharer.php?u=http://jgomezr.github.io/Trivia/score/6.html&amp;t=Trivia%20Scout"); 
+      }else if (res == '7') {
+        window.open("https://www.facebook.com/sharer.php?u=http://jgomezr.github.io/Trivia/score/7.html&amp;t=Trivia%20Scout"); 
+      }else if (res == '8') {
+        window.open("https://www.facebook.com/sharer.php?u=http://jgomezr.github.io/Trivia/score/8.html&amp;t=Trivia%20Scout"); 
+      }else{
+        window.alert('No tienes resultados intentalo nuevamente');
+      }
+      
+    }</script>
 
 </body>
 </html>
