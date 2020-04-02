@@ -1,53 +1,61 @@
 var myQuestions = [
 	{
-		question: "¿En que año nació Baden Powell?",
+		question: "¿Cuél fue el nombre de bautizo de BP?",
 		answers: {
-			a: '1957',
-			b: '1857',
-			c: '1941'
+			a: 'Robert Stephenson Smyth Powell',
+			b: 'Robert Stephenson Smyth Baden-Powell',
+			c: 'Robert Stephe Smyth Powell'
 		},
-		correctAnswer: 'b'
+		correctAnswer: 'a'
 	},
 	{
-		question: "¿Dónde murió Baden Powell?",
+		question: "¿Cuál fue la primera escuela a la que asistió Baden Powell?",
 		answers: {
-			a: 'Londres, Inglaterra',
-			b: 'Mafeking, Sur Africa',
-			c: 'Nyeri, Kenia'
+			a: 'Charterhouse School',
+			b: 'Rose Hill School',
+			c: 'Harrow School'
 		},
-		correctAnswer: 'c'
+		correctAnswer: 'b'
 	},{
-		question: "¿Quién fue el primer Comisionado Rover?",
+		question: "¿En que año fue el primer Rover Moot Internacional en América Latina?",
 		answers: {
-			a: 'Ulick de Burgh',
-			b: 'El Príncipe Gustavo Adolfo de Suecia',
-			c: 'William Henry Smyth'
+			a: '2000',
+			b: '1982',
+			c: '2010'
 		},
 		correctAnswer: 'a'
 	},{
-		question: "¿Cuando fue publicado el libro Roverismo hacia el éxito?",
+		question: "¿Cuando se realizó el primer JOTA?",
 		answers: {
-			a: '1918',
-			b: '1922',
-			c: '1908'
+			a: '1920',
+			b: '1957',
+			c: '1963'
 		},
 		correctAnswer: 'b'
 	},{
-		question: "¿Cuál fue el primer libro Rover?",
+		question: "¿Cuál fue el máximo adelanto Rover entre 1920-1930?",
 		answers: {
-			a: 'Roverismo hacia el éxito',
-			b: 'Reglamento de los Rovers',
-			c: 'Notas para el adiestramiento de los Rovers'
+			a: 'Scout del Rey',
+			b: 'BP',
+			c: 'Scout de la Reina'
 		},
-		correctAnswer: 'b'
+		correctAnswer: 'a'
 	},{
-		question: "¿En qué año se realizó el primer Rover Moot?",
+		question: "¿En qué año se paso de llamar World Rover Moot a World Scout Moot al evento internacional de los Rovers?",
 		answers: {
-			a: '1908',
-			b: '1920',
-			c: '1931'
+			a: '1982',
+			b: '1961',
+			c: '1990'
 		},
 		correctAnswer: 'c'
+	},{
+		question: "¿De donde proviene la oración Rover en América Latina?",
+		answers: {
+			a: 'Oración de Santo Tomás de Aquino',
+			b: 'Oración a San Ignacio de Loyola',
+			c: 'Oración a San Luis Rey'
+		},
+		correctAnswer: 'a'
 	}
 ];
 
