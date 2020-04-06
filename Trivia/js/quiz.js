@@ -17,7 +17,7 @@ var myQuestions = [
 		},
 		correctAnswer: 'b'
 	},{
-		question: "¿En que año fue se publicó Roverismo hacia el éxito?",
+		question: "¿En que año se publicó Roverismo hacia el éxito?",
 		answers: {
 			a: '1918',
 			b: '1920',
@@ -25,7 +25,7 @@ var myQuestions = [
 		},
 		correctAnswer: 'c'
 	},{
-		question: "¿En que año fue se publicó Rema tu propia canoa?",
+		question: "¿En que año se publicó Rema tu propia canoa?",
 		answers: {
 			a: '1920',
 			b: '1939',
@@ -33,7 +33,7 @@ var myQuestions = [
 		},
 		correctAnswer: 'b'
 	},{
-		question: "¿En que año fue se publicó Rover scout, lo que son lo que hacen?",
+		question: "¿En que año se publicó Rover scout, lo que son lo que hacen?",
 		answers: {
 			a: '1958',
 			b: '1921',
