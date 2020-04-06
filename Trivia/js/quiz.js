@@ -33,7 +33,7 @@ var myQuestions = [
 		},
 		correctAnswer: 'b'
 	},{
-		question: "¿En que año fue se publicó Rema tu propia canoa?",
+		question: "¿En que año fue se publicó Rover scout, lo que son lo que hacen?",
 		answers: {
 			a: '1958',
 			b: '1921',
