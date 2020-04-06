@@ -1,59 +1,43 @@
 var myQuestions = [
 	{
-		question: "¿Cuél fue el nombre de bautizo de BP?",
+		question: "¿Cuántas entregas se hicieron de Escultismo para muchachos en 1908?",
 		answers: {
-			a: 'Robert Stephenson Smyth Powell',
-			b: 'Robert Stephenson Smyth Baden-Powell',
-			c: 'Robert Stephe Smyth Powell'
+			a: '12',
+			b: '8',
+			c: '6'
 		},
-		correctAnswer: 'a'
+		correctAnswer: 'c'
 	},
 	{
-		question: "¿Cuál fue la primera escuela a la que asistió Baden Powell?",
+		question: "¿Cuál fue el título completo del libro Ayudas para la exploración de BP?",
 		answers: {
-			a: 'Charterhouse School',
-			b: 'Rose Hill School',
-			c: 'Harrow School'
+			a: 'Aids to Scouting',
+			b: 'Aids to Scouting for N.-C.Os and Men',
+			c: 'Aids to Scouting for Men'
 		},
 		correctAnswer: 'b'
 	},{
-		question: "¿En que año fue el primer Rover Moot Internacional en América Latina?",
+		question: "¿En que año fue se publicó Roverismo hacia el éxito?",
 		answers: {
-			a: '2000',
-			b: '1982',
-			c: '2010'
+			a: '1918',
+			b: '1920',
+			c: '1922'
 		},
-		correctAnswer: 'a'
+		correctAnswer: 'c'
 	},{
-		question: "¿Cuando se realizó el primer JOTA?",
+		question: "¿En que año fue se publicó Rema tu propia canoa?",
 		answers: {
 			a: '1920',
-			b: '1957',
+			b: '1939',
 			c: '1963'
 		},
 		correctAnswer: 'b'
 	},{
-		question: "¿Cuál fue el máximo adelanto Rover entre 1920-1930?",
+		question: "¿En que año fue se publicó Rema tu propia canoa?",
 		answers: {
-			a: 'Scout del Rey',
-			b: 'BP',
-			c: 'Scout de la Reina'
-		},
-		correctAnswer: 'a'
-	},{
-		question: "¿En qué año se paso de llamar World Rover Moot a World Scout Moot al evento internacional de los Rovers?",
-		answers: {
-			a: '1982',
-			b: '1961',
-			c: '1990'
-		},
-		correctAnswer: 'c'
-	},{
-		question: "¿De donde proviene la oración Rover en América Latina?",
-		answers: {
-			a: 'Oración de Santo Tomás de Aquino',
-			b: 'Oración a San Ignacio de Loyola',
-			c: 'Oración a San Luis Rey'
+			a: '1958',
+			b: '1921',
+			c: '1922'
 		},
 		correctAnswer: 'a'
 	}
