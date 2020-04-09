@@ -1,43 +1,43 @@
 var myQuestions = [
 	{
-		question: "¿Cuántas entregas se hicieron de Escultismo para muchachos en 1908?",
+		question: "¿Qué nudo se usa para iniciar un amarre cuadrado?",
 		answers: {
-			a: '12',
-			b: '8',
-			c: '6'
+			a: 'Vuelta escota',
+			b: 'Ballestrinque',
+			c: 'Vuelta de rezón'
 		},
-		correctAnswer: 'c'
+		correctAnswer: 'b'
 	},
 	{
-		question: "¿Cuál fue el título completo del libro Ayudas para la exploración de BP?",
+		question: "Si los largueros en los que voy a aplicar un amarre forman un angulo de 90° ¿Qué amarre debo usar?",
 		answers: {
-			a: 'Aids to Scouting',
-			b: 'Aids to Scouting for N.-C.Os and Men',
-			c: 'Aids to Scouting for Men'
+			a: 'Cuadrado',
+			b: 'Diagonal',
+			c: 'Ninguno'
+		},
+		correctAnswer: 'a'
+	},{
+		question: "¿Qué tipo de fogata me permite ir acercando los troncos al centro a medida que se consume?",
+		answers: {
+			a: 'Tipo tipi',
+			b: 'Tipo estrella',
+			c: 'Tipo polinesio'
 		},
 		correctAnswer: 'b'
 	},{
-		question: "¿En que año se publicó Roverismo hacia el éxito?",
+		question: "¿Cuál es desventaja de la fogata tipo corredor?",
 		answers: {
-			a: '1918',
-			b: '1920',
-			c: '1922'
+			a: 'Que no se puede correr',
+			b: 'No tiene desventaja',
+			c: 'Solo se puede usar cuando la dirección del viento es fija'
 		},
 		correctAnswer: 'c'
 	},{
-		question: "¿En que año se publicó Rema tu propia canoa?",
+		question: "¿En nudos a que se llama Chicote?",
 		answers: {
-			a: '1920',
-			b: '1939',
-			c: '1963'
-		},
-		correctAnswer: 'b'
-	},{
-		question: "¿En que año se publicó Rover scout, lo que son lo que hacen?",
-		answers: {
-			a: '1958',
-			b: '1921',
-			c: '1922'
+			a: 'Al extremo de un cabo',
+			b: 'A una curvatura de un cabo',
+			c: 'A un cabo con diametro superior a 10 mm'
 		},
 		correctAnswer: 'a'
 	}
