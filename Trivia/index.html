@@ -9,13 +9,6 @@
     gtag('js', new Date());
     gtag('config', 'UA-161720746-1');
   </script>
-	<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-TVFHJR4');</script>
-<!-- End Google Tag Manager -->
 
   <link rel="manifest" href="manifest.json">
   <meta charset="utf-8">
@@ -33,20 +26,35 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   <meta name="description" content="Trivia scout aplicación para pasar el rato poniendo a prueba nuestro conocimiento scout">
 </head>
 <body>
-	<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TVFHJR4"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
   <div>
     <h3><img src="images/icon.png" alt="Trivia scout" height="42" width="42">Trivia Scout</h3>
     <p>Escoge las respuestas correcta, has click en el botón "Obtener resultados", comparte, cada semana tendremos preguntas diferentes</p>
+    <p>Solo tienes 3 intentos así que escoge sabiamente</p>
     <hr>
   </div>
-
-	<div id="quiz"></div>
-	<button id="submit">Obtener los resultados</button>
   <div>
+    <h2 style="background: url(images/3.png);background-repeat: no-repeat;color: white;">Baden Powell</h2>
+    <div id="quiz"></div>
     <div id="results"></div>
+  </div>
+  <div>
+    <h2 style="background: url(images/2.png);background-repeat: no-repeat;color: white;">Libros</h2>
+    <div id="quiz2"></div>
+    <div id="results2"></div>
+  </div>
+  <div>
+    <h2 style="background: url(images/1.png);background-repeat: no-repeat;color: white;">Técnica</h2>
+    <div id="quiz3"></div>
+    <div id="results3"></div>
+  </div>
+  <div>
+    <h2>Resultado final</h2>
+    <h2 id="resultFinal"></h2>
+  </div>
+	<br>
+	<button id="submit" onclick="">Obtener los resultados</button>
+  <div>
+    
     <div id="resultButton"><button id="compartir" onclick="share()">Compartir en Facebook</button><br></div>
   </div>
   <header class="header">
@@ -74,7 +82,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <script src="js/install.js"></script>
   <script type="text/javascript">
     function share(){
-      var result = document.getElementById('results').innerHTML;
+      var result = document.getElementById('resultFinal').innerHTML;
       var res = result.slice(0,1);
       if (res == '1') {
         window.open("https://www.facebook.com/sharer.php?u=http://jgomezr.github.io/Trivia/score/1.html&amp;t=Trivia%20Scout"); 
