@@ -11,7 +11,7 @@ var bp = [
 		correctAnswer: 'a'
 	},
 	{
-		question: "¿Por qué Mafeking obtubo tanta atención?",
+		question: "¿Por qué Mafeking obtuvo tanta atención?",
 		answers: {
 			a: 'Por que era un punto estratégico',
 			b: 'Por que el hijo del Primer Ministro Británico estaba allí',
