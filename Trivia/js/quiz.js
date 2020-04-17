@@ -1,5 +1,5 @@
 // síempre que se cambien las preguntas hay que cambiar la versión
-var version = "v5";
+var version = "v6";
 var bp = [
 	{
 		question: "¿En que año fue enviado por primera vez Baden Powell a Africa?",
