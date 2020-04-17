@@ -2,68 +2,68 @@
 var version = "v5";
 var bp = [
 	{
-		question: "¿En que año fue enviado Baden Powell a la India?",
+		question: "¿En que año fue enviado por primera vez Baden Powell a Africa?",
 		answers: {
-			a: '1907',
+			a: '1880',
 			b: '1876',
 			c: '1857'
 		},
-		correctAnswer: 'b'
+		correctAnswer: 'a'
 	},
 	{
-		question: "¿Cuántos días duró el Asedio de Mafeking?",
+		question: "¿Por qué Mafeking obtubo tanta atención?",
 		answers: {
-			a: '360',
-			b: '120',
-			c: '217'
+			a: 'Por que era un punto estratégico',
+			b: 'Por que el hijo del Primer Ministro Británico estaba allí',
+			c: 'Por que era muy bonita'
 		},
-		correctAnswer: 'c'
+		correctAnswer: 'b'
 	}
 ];
 var libros = [
 	{
-		question: "¿En qué año fue publicado Rovers de Gilcraft?",
+		question: "¿Por qué es importante para el roverismo el texto Notas para el adistramiento rover?",
 		answers: {
-			a: '1936',
-			b: '1938',
-			c: '1918'
+			a: 'Por que da lineamientos sobre la edad de los rovers',
+			b: 'Por que muestra la línea de ascenso rover',
+			c: 'Por que era el único texto rover'
 		},
 		correctAnswer: 'a'
 	},{
-		question: "¿Cuántos capítulos o apartados tiene Roverismo hacia el exíto?",
+		question: "¿En qué año fue publicado el Manual para lobatos?",
 		answers: {
-			a: '5',
-			b: '6',
-			c: '8'
+			a: '1908',
+			b: '1916',
+			c: '1928'
 		},
-		correctAnswer: 'c'
+		correctAnswer: 'b'
 	}
 ];
 var tecnica = [
 	{
 		question: "¿Comó deben ir orientadas las puertas de las carpas?",
 		answers: {
-			a: 'Hacia el centro del campamento',
-			b: 'Hacia donde esté el viento',
-			c: 'No importa la orientación'
+			a: 'Hacia el rio',
+			b: 'En sentido contrario a donde esté el viento',
+			c: 'Hacia donde este la comida'
 		},
-		correctAnswer: 'a'
+		correctAnswer: 'b'
 	},{
-		question: "¿Cuál nudo de los básicos sirve para crear una gaza fija?",
+		question: "¿Cuál nudo de los básicos sirve para unir cuerdas de diferente calibre?",
 		answers: {
-			a: 'Briol',
-			b: 'Mariposa',
-			c: 'As de guía'
+			a: 'Llano o riso',
+			b: 'Vuelta escota',
+			c: 'Pescador'
 		},
-		correctAnswer: 'c'
+		correctAnswer: 'b'
 	},{
-		question: "¿Para qué tipo de fogata es necesario cavar un hoyo?",
+		question: "¿Para qué tipo de fogata es necesario crear una especie de pared?",
 		answers: {
-			a: 'Tipo zanja',
+			a: 'Tipo cazador',
 			b: 'Tipo Polinesio',
 			c: 'Tipo reflector'
 		},
-		correctAnswer: 'b'
+		correctAnswer: 'c'
 	}
 ];
 
