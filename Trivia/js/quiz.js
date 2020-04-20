@@ -1,69 +1,69 @@
 // síempre que se cambien las preguntas hay que cambiar la versión
-var version = "v6";
+var version = "v7";
 var bp = [
 	{
-		question: "¿En que año fue enviado por primera vez Baden Powell a Africa?",
+		question: "¿En qué año se retiró Baden Powell del ejército?",
 		answers: {
-			a: '1880',
-			b: '1876',
-			c: '1857'
+			a: '1920',
+			b: '1910',
+			c: '1912'
 		},
-		correctAnswer: 'a'
+		correctAnswer: 'b'
 	},
 	{
-		question: "¿Por qué Mafeking obtuvo tanta atención?",
+		question: "¿En qué año Baden Powell se retiró del Movimiento Scout?",
 		answers: {
-			a: 'Por que era un punto estratégico',
-			b: 'Por que el hijo del Primer Ministro Británico estaba allí',
-			c: 'Por que era muy bonita'
+			a: '1941',
+			b: '1937',
+			c: '1930'
 		},
 		correctAnswer: 'b'
 	}
 ];
 var libros = [
 	{
-		question: "¿Por qué es importante para el roverismo el texto Notas para el adistramiento rover?",
+		question: "¿En qué año fue publicado el libro Lecciones de la universidad de la vida?",
 		answers: {
-			a: 'Por que da lineamientos sobre la edad de los rovers',
-			b: 'Por que muestra la línea de ascenso rover',
-			c: 'Por que era el único texto rover'
+			a: '1933',
+			b: '1929',
+			c: '1934'
 		},
 		correctAnswer: 'a'
 	},{
-		question: "¿En qué año fue publicado el Manual para lobatos?",
+		question: "¿En qué año fue publicado el libro Escultismo y movimientos juveniles?",
 		answers: {
-			a: '1908',
-			b: '1916',
-			c: '1928'
+			a: '1920',
+			b: '1933',
+			c: '1929'
 		},
-		correctAnswer: 'b'
+		correctAnswer: 'c'
 	}
 ];
 var tecnica = [
 	{
-		question: "¿Comó deben ir orientadas las puertas de las carpas?",
+		question: "En señales con silbato, ¿qué letra del alfabeto morse se usa para indicar atención?",
 		answers: {
-			a: 'Hacia el rio',
-			b: 'En sentido contrario a donde esté el viento',
-			c: 'Hacia donde este la comida'
-		},
-		correctAnswer: 'b'
-	},{
-		question: "¿Cuál nudo de los básicos sirve para unir cuerdas de diferente calibre?",
-		answers: {
-			a: 'Llano o riso',
-			b: 'Vuelta escota',
-			c: 'Pescador'
-		},
-		correctAnswer: 'b'
-	},{
-		question: "¿Para qué tipo de fogata es necesario crear una especie de pared?",
-		answers: {
-			a: 'Tipo cazador',
-			b: 'Tipo Polinesio',
-			c: 'Tipo reflector'
+			a: 'M',
+			b: 'A',
+			c: 'T'
 		},
 		correctAnswer: 'c'
+	},{
+		question: "¿Cuál amarre se usa para unir maderos en un ángulo distinto al ángulo recto?",
+		answers: {
+			a: 'Diagonal',
+			b: 'Redondo',
+			c: 'Paralelo'
+		},
+		correctAnswer: 'a'
+	},{
+		question: "¿Qué nudo se usa para ajustar los vientos de una carpa?",
+		answers: {
+			a: 'Tirante',
+			b: 'Vuelta escota',
+			c: 'Cote doble'
+		},
+		correctAnswer: 'a'
 	}
 ];
 
