@@ -1,69 +1,69 @@
 // síempre que se cambien las preguntas hay que cambiar la versión
-var version = "v7";
+var version = "v8";
 var bp = [
 	{
-		question: "¿En qué año se retiró Baden Powell del ejército?",
+		question: "¿De dónde viene al relación de Baden Powell con la familia McLaren que donó el campo Gilwell?",
 		answers: {
-			a: '1920',
-			b: '1910',
-			c: '1912'
+			a: 'De servir con uno de sus miembros en el 13° regimiento de Húsares',
+			b: 'De las cenas suntuosas en Inglaterra',
+			c: 'De su vida política en Londres'
 		},
-		correctAnswer: 'b'
+		correctAnswer: 'a'
 	},
 	{
-		question: "¿En qué año Baden Powell se retiró del Movimiento Scout?",
+		question: "Baden Powell era un hábil jinete lo que le permitió ganar varios reconocimientos,¿En qué ciudad de la India Baden Powell practicaba estocar cerdos?",
 		answers: {
-			a: '1941',
-			b: '1937',
-			c: '1930'
+			a: 'Mumbai',
+			b: 'Muttra',
+			c: 'Kolkata'
 		},
 		correctAnswer: 'b'
 	}
 ];
 var libros = [
 	{
-		question: "¿En qué año fue publicado el libro Lecciones de la universidad de la vida?",
+		question: "La ambición personal de que lo piensen a uno grande o excepcional, solamente crea pedantes ¿En qué libro de Baden Powell podemos encontrar esta frase?",
 		answers: {
-			a: '1933',
-			b: '1929',
-			c: '1934'
+			a: 'Escultismo para Muchachos',
+			b: 'Roverismo hacia el éxito',
+			c: 'Rema tu propia canoa'
+		},
+		correctAnswer: 'b'
+	},{
+		question: "Vale la pena ser bueno, pero es mucho mejor hacer el bien ¿En qué libro de Baden Powell podemos encontrar esta frase?",
+		answers: {
+			a: 'Escultismo para Muchachos',
+			b: 'Roverismo hacia el éxito',
+			c: 'Guía para jefe e tropa'
 		},
 		correctAnswer: 'a'
-	},{
-		question: "¿En qué año fue publicado el libro Escultismo y movimientos juveniles?",
-		answers: {
-			a: '1920',
-			b: '1933',
-			c: '1929'
-		},
-		correctAnswer: 'c'
 	}
 ];
 var tecnica = [
 	{
-		question: "En señales con silbato, ¿qué letra del alfabeto morse se usa para indicar atención?",
+		question: "En señales con silbato, ¿qué letra del alfabeto morse se usa para indicar entendido?",
 		answers: {
 			a: 'M',
 			b: 'A',
 			c: 'T'
 		},
-		correctAnswer: 'c'
+		correctAnswer: 'b'
 	},{
-		question: "¿Cuál amarre se usa para unir maderos en un ángulo distinto al ángulo recto?",
+		question: "¿Cuál amarre se usa para unir maderos en paralelo?",
 		answers: {
 			a: 'Diagonal',
 			b: 'Redondo',
 			c: 'Paralelo'
 		},
-		correctAnswer: 'a'
+		correctAnswer: 'b'
 	},{
-		question: "¿Qué nudo se usa para ajustar los vientos de una carpa?",
+		question: "¿Qué nudo se usa para unirse a otra cuerda, argolla o mástil?",
 		answers: {
-			a: 'Tirante',
+			a: 'Ballestrinque',
 			b: 'Vuelta escota',
-			c: 'Cote doble'
+			c: 'Presilla de alondra'
 		},
-		correctAnswer: 'a'
+		correctAnswer: 'c'
 	}
 ];
 
