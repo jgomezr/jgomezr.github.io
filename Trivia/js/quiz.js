@@ -1,69 +1,61 @@
 // síempre que se cambien las preguntas hay que cambiar la versión
-var version = "v8";
+var version = "v9";
 var bp = [
 	{
-		question: "¿De dónde viene al relación de Baden Powell con la familia McLaren que donó el campo Gilwell?",
+		question: "¿Cuál era el nombre del territorio donde Baden Powell se enfrentó con los Ashanti?",
 		answers: {
-			a: 'De servir con uno de sus miembros en el 13° regimiento de Húsares',
-			b: 'De las cenas suntuosas en Inglaterra',
-			c: 'De su vida política en Londres'
+			a: 'Sudafrica',
+			b: 'Sudan',
+			c: 'Costa de oro'
 		},
-		correctAnswer: 'a'
+		correctAnswer: 'c'
 	},
 	{
-		question: "Baden Powell era un hábil jinete lo que le permitió ganar varios reconocimientos,¿En qué ciudad de la India Baden Powell practicaba estocar cerdos?",
+		question: "¿Cuál fue uno de los eventos que hizo que Baden Powell pensara en la importancia del adistramiento de los jóvenes?",
 		answers: {
-			a: 'Mumbai',
-			b: 'Muttra',
-			c: 'Kolkata'
+			a: 'Una inspección a la Brigada de muchachos',
+			b: 'Un desfile de la policía sudanesa',
+			c: 'Una visita a Estados Unidos'
 		},
-		correctAnswer: 'b'
+		correctAnswer: 'a'
 	}
 ];
 var libros = [
 	{
-		question: "La ambición personal de que lo piensen a uno grande o excepcional, solamente crea pedantes ¿En qué libro de Baden Powell podemos encontrar esta frase?",
+		question: "El Scout jamás deberá recibir recompensas por haber prestado ayuda o haber sido cortés ¿A qué se refería Baden Powell con esta frase?",
 		answers: {
-			a: 'Escultismo para Muchachos',
-			b: 'Roverismo hacia el éxito',
-			c: 'Rema tu propia canoa'
+			a: 'a la buena acción',
+			b: 'al servicio',
+			c: 'al desinterés'
+		},
+		correctAnswer: 'c'
+	},{
+		question: "Convertirte en Scout eficiente y capaz no es solamente para que goces y corras aventuras, sino para que seas útil a tu país y pueda servir a los semejantes ¿A qué se refería Baden Powell con esta frase de Escultimos para muchachos?",
+		answers: {
+			a: 'Al servicio',
+			b: 'Al objetivo del Escultismo',
+			c: 'A la buena acción'
 		},
 		correctAnswer: 'b'
-	},{
-		question: "Vale la pena ser bueno, pero es mucho mejor hacer el bien ¿En qué libro de Baden Powell podemos encontrar esta frase?",
-		answers: {
-			a: 'Escultismo para Muchachos',
-			b: 'Roverismo hacia el éxito',
-			c: 'Guía para jefe e tropa'
-		},
-		correctAnswer: 'a'
 	}
 ];
 var tecnica = [
 	{
-		question: "En señales con silbato, ¿qué letra del alfabeto morse se usa para indicar entendido?",
+		question: "En señales con silbato, ¿qué letra del alfabeto morse se usa para indicar rompan filas?",
 		answers: {
 			a: 'M',
-			b: 'A',
+			b: 'B',
 			c: 'T'
 		},
 		correctAnswer: 'b'
 	},{
-		question: "¿Cuál amarre se usa para unir maderos en paralelo?",
+		question: "¿Qué características deben tener las banderas para clave semáforo?",
 		answers: {
-			a: 'Diagonal',
-			b: 'Redondo',
-			c: 'Paralelo'
+			a: 'Están devididas diagonalmente en dos partes',
+			b: 'Se usan dos banderas',
+			c: 'Qué sean de papel'
 		},
-		correctAnswer: 'b'
-	},{
-		question: "¿Qué nudo se usa para unirse a otra cuerda, argolla o mástil?",
-		answers: {
-			a: 'Ballestrinque',
-			b: 'Vuelta escota',
-			c: 'Presilla de alondra'
-		},
-		correctAnswer: 'c'
+		correctAnswer: 'a'
 	}
 ];
 
