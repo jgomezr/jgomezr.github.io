@@ -1,0 +1,65 @@
+{
+  "Eventos": [
+    {
+      "Nombre": "Roverland",
+      "Fecha": "23-11-2024",
+      "Tipo": "Rover Regional"
+    },{
+      "Nombre": "Asamblea Rover",
+      "Fecha": "01-12-2024",
+      "Tipo": "Rover Regional"
+    }
+  ],
+  "Clubes": [
+    {
+      "Nombre": "Akshay kumar",
+      "Imagen": "Acting",
+      "Redes": "@testacting",
+      "Type": "Actuación"
+    },
+    {
+      "Nombre": "yo te pinto",
+      "Imagen": "Acting",
+      "Redes": "@testpinto",
+      "Type": "Pintura"
+    }
+  ],
+  "Proyectos": [
+    {
+      "Nombre": "Proyecto 1",
+      "Imagen": "Acting",
+      "Redes": "@testproyecto1",
+      "Type": "Servicio"
+    },
+    {
+      "Nombre": "Proyecto 2",
+      "Imagen": "Acting",
+      "Redes": "@testproyecto2",
+      "Type": "Ambiental"
+    }
+  ],
+  "Emprendimientos": [
+    {
+      "Nombre": "Emprendimiento 1",
+      "Clan": "Clan Test",
+      "Tipo": "Alimentos"
+    },
+    {
+      "Nombre": "Emprendimiento 2",
+      "Clan": "Clan Test 2",
+      "Tipo": "Artesanías"
+    }
+  ],
+  "Noticias": [
+    {
+      "Título": "Test Noticia",
+      "Texto": "Este es el test de una noticia donde decimos que a un Rover le dieron un reconocimiento y es del Clan X",
+      "Fecha": "12-11-2024" 
+    },
+     {
+      "Título": "Test Moot",
+      "Texto": "Este es el test de una noticia donde decimos que se aproxima el moot de Portugal",
+      "Fecha": "13-11-2024" 
+    }
+  ]
+}
