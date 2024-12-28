@@ -1,0 +1,13 @@
+{
+  "Eventos": [
+    {
+      "Nombre": "Roverland",
+      "Fecha": "23-11-2024",
+      "Tipo": "Rover Regional"
+    },{
+      "Nombre": "Asamblea Rover",
+      "Fecha": "01-12-2024",
+      "Tipo": "Rover Regional"
+    }
+  ]
+}

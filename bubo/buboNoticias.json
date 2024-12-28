@@ -1,0 +1,14 @@
+{
+  "Noticias": [
+    {
+      "Titulo": "Test Noticia",
+      "Texto": "Este es el test de una noticia donde decimos que a un Rover le dieron un reconocimiento y es del Clan X",
+      "Fecha": "12-11-2024" 
+    },
+     {
+      "Titulo": "Test Moot",
+      "Texto": "Este es el test de una noticia donde decimos que se aproxima el moot de Portugal",
+      "Fecha": "13-11-2024" 
+    }
+  ]
+}
