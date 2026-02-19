@@ -117,10 +117,17 @@ class TriviaApp {
             { key: 'tecnica', title: 'Técnica', icon: 'images/1.png' }
         ];
         
+        // Reset total questions count for this session
+        this.totalQuestions = 0;
+        
         categories.forEach(category => {
             const categoryData = this.questions[category.key];
-            const questions = categoryData?.questions || [];
-            if (questions.length === 0) return;
+            const allQuestions = categoryData?.questions || [];
+            if (allQuestions.length === 0) return;
+            
+            // Select 3 random questions from the available questions
+            const selectedQuestions = this.getRandomQuestions(allQuestions, 3);
+            this.totalQuestions += selectedQuestions.length;
             
             const categoryElement = document.createElement('div');
             categoryElement.className = 'category-section';
@@ -137,11 +144,17 @@ class TriviaApp {
             this.categoriesContainer.appendChild(categoryElement);
             
             // Render questions for this category
-            this.renderCategoryQuestions(category.key, questions);
+            this.renderCategoryQuestions(category.key, selectedQuestions);
         });
         
         // Add event listeners to all radio buttons
         this.addAnswerEventListeners();
+    }
+    
+    getRandomQuestions(questionsArray, count) {
+        // Create a copy of the array to avoid modifying the original
+        const shuffled = [...questionsArray].sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, count);
     }
     
     renderCategoryQuestions(categoryKey, questions) {
