@@ -32,29 +32,22 @@ class TriviaApp {
         this.downloadInstagramBtn = document.getElementById('downloadInstagram');
         this.instagramCanvas = document.getElementById('instagramCanvas');
         
+        console.log('Initializing Trivia App...');
+        
         // Initialize the app
         this.init();
     }
     
     async init() {
         try {
-            console.log('Initializing Trivia App...');
-            
             // Load questions from JSON
-            const loadedQuestions = await QuestionLoader.loadQuestions();
-            console.log('Loaded questions:', loadedQuestions);
+            this.questions = await QuestionLoader.loadQuestions();
             
-            if (!loadedQuestions || typeof loadedQuestions !== 'object') {
-                throw new Error('Invalid questions data structure');
-            }
-            
-            this.questions = loadedQuestions;
-            
-            // Calculate total questions
+            // Calculate total questions from the correct structure
             this.totalQuestions = 0;
-            for (const category in this.questions) {
-                if (Array.isArray(this.questions[category])) {
-                    this.totalQuestions += this.questions[category].length;
+            for (const categoryKey in this.questions) {
+                if (this.questions[categoryKey].questions) {
+                    this.totalQuestions += this.questions[categoryKey].questions.length;
                 }
             }
             
@@ -72,8 +65,6 @@ class TriviaApp {
             
             // Check for existing attempts
             this.checkExistingAttempts();
-            
-            console.log('Trivia App initialized successfully!');
             
         } catch (error) {
             console.error('Failed to initialize app:', error);
@@ -114,12 +105,7 @@ class TriviaApp {
     }
     
     renderQuiz() {
-        if (!this.categoriesContainer || !this.questions) {
-            console.error('Cannot render quiz: missing container or questions');
-            return;
-        }
-        
-        console.log('Rendering quiz with questions:', this.questions);
+        if (!this.categoriesContainer || !this.questions) return;
         
         // Clear existing content
         this.categoriesContainer.innerHTML = '';
@@ -131,16 +117,10 @@ class TriviaApp {
             { key: 'tecnica', title: 'Técnica', icon: 'images/1.png' }
         ];
         
-        let totalRenderedQuestions = 0;
-        
         categories.forEach(category => {
-            const questions = this.questions[category.key] || [];
-            if (questions.length === 0) {
-                console.warn(`No questions found for category: ${category.key}`);
-                return;
-            }
-            
-            console.log(`Rendering ${questions.length} questions for category: ${category.key}`);
+            const categoryData = this.questions[category.key];
+            const questions = categoryData?.questions || [];
+            if (questions.length === 0) return;
             
             const categoryElement = document.createElement('div');
             categoryElement.className = 'category-section';
@@ -158,10 +138,7 @@ class TriviaApp {
             
             // Render questions for this category
             this.renderCategoryQuestions(category.key, questions);
-            totalRenderedQuestions += questions.length;
         });
-        
-        console.log(`Total rendered questions: ${totalRenderedQuestions}`);
         
         // Add event listeners to all radio buttons
         this.addAnswerEventListeners();
@@ -169,10 +146,7 @@ class TriviaApp {
     
     renderCategoryQuestions(categoryKey, questions) {
         const container = document.getElementById(`quiz-${categoryKey}`);
-        if (!container) {
-            console.error(`Quiz container not found for category: ${categoryKey}`);
-            return;
-        }
+        if (!container) return;
         
         const questionsHtml = questions.map((question, index) => {
             const questionId = `${categoryKey}${index}`;
@@ -202,14 +176,11 @@ class TriviaApp {
     
     addAnswerEventListeners() {
         const radioButtons = document.querySelectorAll('input[type="radio"]');
-        console.log('Radio buttons found:', radioButtons.length);
-        
         radioButtons.forEach(radio => {
             radio.addEventListener('change', (e) => {
                 const questionId = e.target.name;
                 const answer = e.target.value;
                 this.userAnswers.set(questionId, answer);
-                console.log('Answer tracked:', questionId, answer);
                 this.updateProgress();
                 this.checkEnableSubmit();
             });
@@ -220,7 +191,6 @@ class TriviaApp {
         // Enable submit button only when all questions are answered
         if (this.submitButton && this.userAnswers.size === this.totalQuestions) {
             this.submitButton.disabled = false;
-            console.log('Submit button enabled');
         }
     }
     
@@ -277,7 +247,11 @@ class TriviaApp {
             
             // Grade each category
             let categoryResults = {};
-            for (const [categoryKey, questions] of Object.entries(this.questions)) {
+            for (const categoryKey in this.questions) {
+                const categoryData = this.questions[categoryKey];
+                const questions = categoryData?.questions || [];
+                if (questions.length === 0) continue;
+                
                 const categoryScore = this.gradeCategory(categoryKey, questions);
                 this.score += categoryScore;
                 categoryResults[categoryKey] = { score: categoryScore, total: questions.length };
