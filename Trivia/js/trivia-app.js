@@ -1,19 +1,19 @@
 /**
- * Enhanced Trivia Scout App - ROBUST VERSION
+ * Enhanced Trivia Scout App - FINAL VERSION
  * Modern, accessible, and feature-rich trivia application
- * Version: 2.0.2 (Fixed submit button reliability)
+ * Version: 3.0.0 (JSON questions + Instagram sharing)
  */
 
 class TriviaApp {
     constructor() {
-        this.version = "v10";
+        this.version = "v11";
         this.currentAttempt = 1;
         this.maxAttempts = 3;
         this.score = 0;
         this.totalQuestions = 0;
         this.userAnswers = new Map();
         this.isProcessing = false;
-        this.allQuestionsAnswered = false;
+        this.questions = null;
         
         // DOM Elements
         this.categoriesContainer = document.querySelector('.categories-container');
@@ -27,54 +27,36 @@ class TriviaApp {
         this.progressBar = document.getElementById('progressBar');
         this.shareBtn = document.getElementById('shareBtn');
         this.refreshBtn = document.getElementById('refreshBtn');
-        
-        // Debug info
-        console.log('TriviaApp initialized');
-        console.log('Submit button element:', this.submitButton);
+        this.instagramShareBtn = document.getElementById('instagramShareBtn');
         
         // Initialize the app
         this.init();
     }
     
-    init() {
-        // Load questions data
-        this.loadQuestions();
-        
-        // Setup event listeners for static elements
-        this.setupStaticEventListeners();
-        
-        // Render the quiz
-        this.renderQuiz();
-        
-        // Check for existing attempts
-        this.checkExistingAttempts();
-        
-        // Enable submit button immediately for testing
-        if (this.submitButton) {
-            this.submitButton.disabled = false;
-            console.log('Submit button enabled (debug mode)');
+    async init() {
+        try {
+            // Load questions from JSON
+            this.questions = await QuestionLoader.loadQuestions();
+            this.totalQuestions = Object.values(this.questions).reduce((total, category) => total + category.length, 0);
+            
+            // Setup event listeners
+            this.setupEventListeners();
+            
+            // Render the quiz
+            this.renderQuiz();
+            
+            // Check for existing attempts
+            this.checkExistingAttempts();
+            
+        } catch (error) {
+            console.error('Failed to load questions:', error);
+            this.showError('No se pudieron cargar las preguntas. Por favor, recarga la página.');
         }
     }
     
-    loadQuestions() {
-        if (typeof QUESTIONS === 'undefined') {
-            console.error('QUESTIONS not defined - check if questions.js is loaded');
-            return;
-        }
-        
-        this.questions = QUESTIONS;
-        this.totalQuestions = Object.values(this.questions).reduce((total, category) => total + category.length, 0);
-        console.log(`Loaded ${this.totalQuestions} total questions`);
-    }
-    
-    setupStaticEventListeners() {
-        // Submit button - always enable for now to test functionality
+    setupEventListeners() {
         if (this.submitButton) {
-            this.submitButton.addEventListener('click', (e) => {
-                console.log('Submit button clicked');
-                e.preventDefault();
-                this.handleSubmit();
-            });
+            this.submitButton.addEventListener('click', () => this.handleSubmit());
         }
         
         if (this.retryButton) {
@@ -89,6 +71,10 @@ class TriviaApp {
             this.shareBtn.addEventListener('click', () => this.showShareOptions());
         }
         
+        if (this.instagramShareBtn) {
+            this.instagramShareBtn.addEventListener('click', () => this.generateInstagramImage());
+        }
+        
         // Share buttons
         const shareButtons = document.querySelectorAll('[data-platform]');
         shareButtons.forEach(button => {
@@ -97,10 +83,7 @@ class TriviaApp {
     }
     
     renderQuiz() {
-        if (!this.categoriesContainer) {
-            console.error('Categories container not found');
-            return;
-        }
+        if (!this.categoriesContainer || !this.questions) return;
         
         // Clear existing content
         this.categoriesContainer.innerHTML = '';
@@ -134,24 +117,19 @@ class TriviaApp {
             this.renderCategoryQuestions(category.key, questions);
         });
         
-        // Add event listeners to all radio buttons AFTER they're created
-        setTimeout(() => {
-            this.addAnswerEventListeners();
-        }, 100);
+        // Add event listeners to all radio buttons
+        this.addAnswerEventListeners();
     }
     
     renderCategoryQuestions(categoryKey, questions) {
         const container = document.getElementById(`quiz-${categoryKey}`);
-        if (!container) {
-            console.error(`Quiz container not found for category: ${categoryKey}`);
-            return;
-        }
+        if (!container) return;
         
         const questionsHtml = questions.map((question, index) => {
-            const questionId = `question-${categoryKey}-${index}`;
+            const questionId = `${categoryKey}${index}`;
             const answersHtml = Object.entries(question.answers).map(([key, value]) => `
                 <label class="answer-option">
-                    <input type="radio" name="${questionId}" value="${key}" data-category="${categoryKey}" data-index="${index}">
+                    <input type="radio" name="${questionId}" value="${key}">
                     <span class="answer-content">
                         <span class="answer-letter">${key}</span>
                         <span class="answer-text">${value}</span>
@@ -175,34 +153,20 @@ class TriviaApp {
     
     addAnswerEventListeners() {
         const radioButtons = document.querySelectorAll('input[type="radio"]');
-        console.log(`Found ${radioButtons.length} radio buttons`);
-        
         radioButtons.forEach(radio => {
-            // Remove any existing listeners to prevent duplicates
-            radio.removeEventListener('change', this.radioChangeHandler);
-            radio.addEventListener('change', (e) => this.radioChangeHandler(e));
+            radio.addEventListener('change', (e) => {
+                const questionId = e.target.name;
+                const answer = e.target.value;
+                this.userAnswers.set(questionId, answer);
+                this.updateProgress();
+                this.checkEnableSubmit();
+            });
         });
-        
-        // Enable submit button immediately for testing
-        if (this.submitButton) {
-            this.submitButton.disabled = false;
-        }
     }
     
-    radioChangeHandler(e) {
-        const radio = e.target;
-        const questionId = radio.name;
-        const answer = radio.value;
-        const category = radio.dataset.category;
-        const index = radio.dataset.index;
-        
-        console.log(`Answer selected: ${questionId} = ${answer}`);
-        
-        this.userAnswers.set(questionId, answer);
-        this.updateProgress();
-        
-        // Always enable submit button when any answer is selected (for testing)
-        if (this.submitButton) {
+    checkEnableSubmit() {
+        // Enable submit button only when all questions are answered
+        if (this.submitButton && this.userAnswers.size === this.totalQuestions) {
             this.submitButton.disabled = false;
         }
     }
@@ -215,8 +179,6 @@ class TriviaApp {
         
         this.progressBar.style.width = `${percentage}%`;
         this.progressBar.setAttribute('aria-valuenow', percentage);
-        
-        console.log(`Progress: ${answeredCount}/${this.totalQuestions} (${percentage}%)`);
     }
     
     checkExistingAttempts() {
@@ -230,14 +192,21 @@ class TriviaApp {
             this.setCookie('trivia_version', this.version);
         }
         
-        console.log(`Current attempt: ${this.currentAttempt}/${this.maxAttempts}`);
+        // Update UI based on attempts
+        this.updateAttemptUI();
+    }
+    
+    updateAttemptUI() {
+        // Hide submit button if max attempts reached
+        if (this.submitButton && this.currentAttempt > this.maxAttempts) {
+            this.submitButton.style.display = 'none';
+        }
     }
     
     async handleSubmit() {
-        console.log('handleSubmit called');
-        
-        if (this.isProcessing) {
-            console.log('Already processing');
+        if (this.isProcessing) return;
+        if (this.currentAttempt >= this.maxAttempts) {
+            this.showError('Has alcanzado el máximo de intentos (3). ¡Gracias por jugar!');
             return;
         }
         
@@ -248,7 +217,7 @@ class TriviaApp {
         }
         
         try {
-            await this.delay(300);
+            await this.delay(300); // Small delay for UX
             
             this.score = 0;
             this.clearPreviousFeedback();
@@ -270,8 +239,6 @@ class TriviaApp {
             // Enable sharing
             this.enableSharing();
             
-            console.log(`Quiz completed! Score: ${this.score}/${this.totalQuestions}`);
-            
         } catch (error) {
             console.error('Error processing quiz:', error);
             this.showError('Hubo un error al procesar tus respuestas. Por favor, intenta de nuevo.');
@@ -288,11 +255,9 @@ class TriviaApp {
         let categoryScore = 0;
         
         questions.forEach((question, index) => {
-            const questionId = `question-${categoryKey}-${index}`;
+            const questionId = `${categoryKey}${index}`;
             const userAnswer = this.userAnswers.get(questionId);
             const isCorrect = userAnswer === question.correctAnswer;
-            
-            console.log(`Grading ${questionId}: user=${userAnswer}, correct=${question.correctAnswer}, result=${isCorrect}`);
             
             if (isCorrect) {
                 categoryScore++;
@@ -321,10 +286,12 @@ class TriviaApp {
     }
     
     showResults(categoryResults) {
+        // Show results section
         if (this.resultsSection) {
             this.resultsSection.hidden = false;
         }
         
+        // Update final score
         if (this.finalScoreElement) {
             this.finalScoreElement.innerHTML = `
                 <div class="score-display">
@@ -335,6 +302,7 @@ class TriviaApp {
             `;
         }
         
+        // Update performance feedback
         if (this.performanceFeedback) {
             let feedbackText = '';
             const percentage = (this.score / this.totalQuestions) * 100;
@@ -352,6 +320,7 @@ class TriviaApp {
             this.performanceFeedback.textContent = feedbackText;
         }
         
+        // Update category breakdown
         if (this.categoryBreakdown) {
             const categories = [
                 { key: 'badenPowell', title: 'Baden Powell' },
@@ -368,6 +337,7 @@ class TriviaApp {
             this.categoryBreakdown.innerHTML = breakdownHtml;
         }
         
+        // Show retry button
         if (this.retryButton) {
             this.retryButton.hidden = false;
         }
@@ -377,6 +347,9 @@ class TriviaApp {
         if (this.shareBtn) {
             this.shareBtn.disabled = false;
         }
+        if (this.instagramShareBtn) {
+            this.instagramShareBtn.style.display = 'inline-block';
+        }
     }
     
     showShareOptions() {
@@ -385,20 +358,69 @@ class TriviaApp {
         }
     }
     
+    async generateInstagramImage() {
+        try {
+            const imageData = await ImageGenerator.generateScoreImage(
+                this.score,
+                this.totalQuestions,
+                this.getUserName()
+            );
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.download = `trivia-scout-score-${this.score}-of-${this.totalQuestions}.png`;
+            link.href = imageData;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            this.showToast('¡Imagen generada! Abre tu galería para compartir en Instagram.');
+            
+        } catch (error) {
+            console.error('Error generating image:', error);
+            this.showError('No se pudo generar la imagen. Intenta de nuevo.');
+        }
+    }
+    
+    getUserName() {
+        // You can customize this to get user's name from input or localStorage
+        return 'Scout';
+    }
+    
     saveAttempt() {
         this.currentAttempt++;
         this.setCookie('trivia_attempts', this.currentAttempt.toString());
+        this.updateAttemptUI();
     }
     
     retryQuiz() {
+        // Clear user answers
         this.userAnswers.clear();
+        
+        // Re-render the quiz
         this.renderQuiz();
         
-        if (this.resultsSection) this.resultsSection.hidden = true;
-        if (this.socialShare) this.socialShare.hidden = true;
-        if (this.retryButton) this.retryButton.hidden = true;
+        // Hide results
+        if (this.resultsSection) {
+            this.resultsSection.hidden = true;
+        }
+        if (this.socialShare) {
+            this.socialShare.hidden = true;
+        }
+        if (this.retryButton) {
+            this.retryButton.hidden = true;
+        }
+        if (this.instagramShareBtn) {
+            this.instagramShareBtn.style.display = 'none';
+        }
         
+        // Reset progress
         this.updateProgress();
+        
+        // Disable submit button
+        if (this.submitButton) {
+            this.submitButton.disabled = true;
+        }
     }
     
     refreshApp() {
@@ -453,6 +475,7 @@ class TriviaApp {
         this.showToast(message);
     }
     
+    // Utility methods
     getCookie(name) {
         const value = `; ${document.cookie}`;
         const parts = value.split(`; ${name}=`);
@@ -473,11 +496,5 @@ class TriviaApp {
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing TriviaApp');
-    
-    if (typeof QUESTIONS !== 'undefined') {
-        new TriviaApp();
-    } else {
-        console.error('QUESTIONS not defined - make sure questions.js is loaded before trivia-app.js');
-    }
+    new TriviaApp();
 });

@@ -69,6 +69,22 @@
       <div class="final-score" id="finalScore"></div>
       <div class="performance-feedback" id="performanceFeedback"></div>
       <div class="category-breakdown" id="categoryBreakdown"></div>
+      
+      <!-- Instagram Share Section -->
+      <div class="instagram-share" id="instagramShare" hidden>
+        <h3>Comparte en Instagram</h3>
+        <div class="instagram-preview">
+          <canvas id="instagramCanvas" width="1080" height="1080"></canvas>
+        </div>
+        <button id="downloadInstagram" class="btn instagram-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Descargar para Instagram
+        </button>
+      </div>
     </div>
 
     <div class="actions-section">
@@ -94,6 +110,14 @@
             <path d="M12 19l-7-3 2-8 5 5 5-5 2 8-7 3z"></path>
           </svg>
           Telegram
+        </button>
+        <button class="share-option instagram" id="showInstagram">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+          Instagram
         </button>
         <button class="share-option copy" data-platform="copy">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -130,7 +154,9 @@
   </script>
 
   <!-- Scripts -->
-  <script src="js/questions.js"></script>
+  <script src="data/questions.json"></script>
+  <script src="js/question-loader.js"></script>
+  <script src="js/image-generator.js"></script>
   <script src="js/trivia-app.js"></script>
   <script src="js/debug.js"></script>
 </body>

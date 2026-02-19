@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="800" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Scout-themed background with campfire and stars -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#8B4513"/>
+      <stop offset="100%" stop-color="#5D2906"/>
+    </linearGradient>
+    <radialGradient id="campfireGlow" cx="50%" cy="70%" r="30%">
+      <stop offset="0%" stop-color="#FF4500" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#FF4500" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="800" fill="url(#bgGradient)"/>
+  
+  <!-- Night sky stars -->
+  <circle cx="100" cy="100" r="2" fill="white"/>
+  <circle cx="200" cy="80" r="1.5" fill="white"/>
+  <circle cx="300" cy="120" r="2" fill="white"/>
+  <circle cx="400" cy="90" r="1.5" fill="white"/>
+  <circle cx="500" cy="110" r="2" fill="white"/>
+  <circle cx="600" cy="85" r="1.5" fill="white"/>
+  <circle cx="700" cy="105" r="2" fill="white"/>
+  
+  <!-- Campfire base -->
+  <ellipse cx="400" cy="650" rx="80" ry="30" fill="#8B4513"/>
+  
+  <!-- Campfire flames -->
+  <path d="M350,650 Q400,500 450,650" fill="url(#campfireGlow)"/>
+  <path d="M370,650 Q400,550 430,650" fill="#FF4500"/>
+  <path d="M385,650 Q400,580 415,650" fill="#FFA500"/>
+  
+  <!-- Scout badge elements -->
+  <circle cx="400" cy="250" r="60" fill="none" stroke="gold" stroke-width="4"/>
+  <text x="400" y="255" text-anchor="middle" fill="gold" font-family="Arial" font-size="24" font-weight="bold">SCOUT</text>
+  
+  <!-- Pine trees silhouettes -->
+  <path d="M150,500 L130,550 L170,550 Z" fill="#228B22"/>
+  <path d="M140,480 L125,520 L155,520 Z" fill="#228B22"/>
+  <path d="M145,460 L135,490 L155,490 Z" fill="#228B22"/>
+  
+  <path d="M650,500 L630,550 L670,550 Z" fill="#228B22"/>
+  <path d="M640,480 L625,520 L655,520 Z" fill="#228B22"/>
+  <path d="M645,460 L635,490 L655,490 Z" fill="#228B22"/>
+</svg>
