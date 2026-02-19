@@ -1,7 +1,7 @@
 /**
- * Enhanced Trivia Scout App
+ * Enhanced Trivia Scout App - CORRECTED VERSION
  * Modern, accessible, and feature-rich trivia application
- * Version: 2.0.0
+ * Version: 2.0.1 (Fixed compatibility issues)
  */
 
 class TriviaApp {
@@ -14,22 +14,20 @@ class TriviaApp {
         this.userAnswers = new Map();
         this.isProcessing = false;
         
-        // DOM Elements
-        this.quizContainers = {
-            bp: document.getElementById('quiz-bp'),
-            libros: document.getElementById('quiz-libros'), 
-            tecnica: document.getElementById('quiz-tecnica')
-        };
-        this.resultsContainers = {
-            bp: document.getElementById('results-bp'),
-            libros: document.getElementById('results-libros'),
-            tecnica: document.getElementById('results-tecnica')
-        };
-        this.submitButton = document.getElementById('submit');
-        this.finalResult = document.getElementById('resultFinal');
-        this.shareButtons = document.querySelectorAll('.share-btn');
-        this.progressBars = document.querySelectorAll('.progress-bar');
+        // DOM Elements - using the actual IDs from the HTML
+        this.categoriesContainer = document.querySelector('.categories-container');
+        this.submitButton = document.getElementById('submitBtn');
+        this.retryButton = document.getElementById('retryBtn');
+        this.finalScoreElement = document.getElementById('finalScore');
+        this.performanceFeedback = document.getElementById('performanceFeedback');
+        this.categoryBreakdown = document.getElementById('categoryBreakdown');
+        this.resultsSection = document.getElementById('resultsSection');
+        this.socialShare = document.getElementById('socialShare');
+        this.progressBar = document.getElementById('progressBar');
+        this.shareBtn = document.getElementById('shareBtn');
+        this.refreshBtn = document.getElementById('refreshBtn');
         
+        // Initialize the app
         this.init();
     }
     
@@ -40,8 +38,8 @@ class TriviaApp {
         // Setup event listeners
         this.setupEventListeners();
         
-        // Initialize UI
-        this.initializeUI();
+        // Render the quiz
+        this.renderQuiz();
         
         // Check for existing attempts
         this.checkExistingAttempts();
@@ -49,55 +47,136 @@ class TriviaApp {
     
     loadQuestions() {
         // Questions are loaded from questions.js
-        if (typeof window.questions === 'undefined') {
+        if (typeof QUESTIONS === 'undefined') {
             console.error('Questions data not loaded');
             return;
         }
         
-        this.questions = window.questions;
+        this.questions = QUESTIONS;
         this.totalQuestions = Object.values(this.questions).reduce((total, category) => total + category.length, 0);
     }
     
     setupEventListeners() {
-        // Submit button
-        this.submitButton.addEventListener('click', () => this.handleSubmit());
+        if (this.submitButton) {
+            this.submitButton.addEventListener('click', () => this.handleSubmit());
+        }
+        
+        if (this.retryButton) {
+            this.retryButton.addEventListener('click', () => this.retryQuiz());
+        }
+        
+        if (this.refreshBtn) {
+            this.refreshBtn.addEventListener('click', () => this.refreshApp());
+        }
+        
+        if (this.shareBtn) {
+            this.shareBtn.addEventListener('click', () => this.showShareOptions());
+        }
         
         // Share buttons
-        this.shareButtons.forEach(button => {
+        const shareButtons = document.querySelectorAll('[data-platform]');
+        shareButtons.forEach(button => {
             button.addEventListener('click', (e) => this.handleShare(e));
         });
+    }
+    
+    renderQuiz() {
+        if (!this.categoriesContainer) return;
         
-        // Answer selection tracking
-        Object.keys(this.quizContainers).forEach(category => {
-            const container = this.quizContainers[category];
-            if (container) {
-                container.addEventListener('change', (e) => {
-                    if (e.target.type === 'radio') {
-                        const questionId = e.target.name;
-                        const answer = e.target.value;
-                        this.userAnswers.set(questionId, answer);
-                        this.updateProgress();
-                    }
-                });
-            }
+        // Clear existing content
+        this.categoriesContainer.innerHTML = '';
+        
+        // Create categories
+        const categories = [
+            { key: 'badenPowell', title: 'Baden Powell', icon: 'images/3.png' },
+            { key: 'libros', title: 'Libros', icon: 'images/2.png' },
+            { key: 'tecnica', title: 'Técnica', icon: 'images/1.png' }
+        ];
+        
+        categories.forEach(category => {
+            const questions = this.questions[category.key] || [];
+            if (questions.length === 0) return;
+            
+            const categoryElement = document.createElement('div');
+            categoryElement.className = 'category-section';
+            categoryElement.innerHTML = `
+                <h2 class="category-title" style="background: url(${category.icon}); background-repeat: no-repeat; color: white;">
+                    ${category.title}
+                </h2>
+                <div class="quiz-container" id="quiz-${category.key}">
+                    <!-- Questions will be inserted here -->
+                </div>
+                <div class="results-container" id="results-${category.key}"></div>
+            `;
+            
+            this.categoriesContainer.appendChild(categoryElement);
+            
+            // Render questions for this category
+            this.renderCategoryQuestions(category.key, questions);
         });
         
-        // Refresh button
-        const refreshBtn = document.getElementById('butRefresh');
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', () => this.refreshApp());
+        // Add event listeners to all radio buttons
+        this.addAnswerEventListeners();
+    }
+    
+    renderCategoryQuestions(categoryKey, questions) {
+        const container = document.getElementById(`quiz-${categoryKey}`);
+        if (!container) return;
+        
+        const questionsHtml = questions.map((question, index) => {
+            const questionId = `${categoryKey}${index}`;
+            const answersHtml = Object.entries(question.answers).map(([key, value]) => `
+                <label class="answer-option">
+                    <input type="radio" name="${questionId}" value="${key}">
+                    <span class="answer-content">
+                        <span class="answer-letter">${key}</span>
+                        <span class="answer-text">${value}</span>
+                    </span>
+                </label>
+            `).join('');
+            
+            return `
+                <div class="question-card" data-category="${categoryKey}" data-index="${index}">
+                    <h3 class="question-text">${question.question}</h3>
+                    <div class="answers-container">
+                        ${answersHtml}
+                    </div>
+                    <div class="feedback" id="feedback-${questionId}" aria-live="polite"></div>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = questionsHtml;
+    }
+    
+    addAnswerEventListeners() {
+        const radioButtons = document.querySelectorAll('input[type="radio"]');
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const questionId = e.target.name;
+                const answer = e.target.value;
+                this.userAnswers.set(questionId, answer);
+                this.updateProgress();
+                this.checkEnableSubmit();
+            });
+        });
+    }
+    
+    checkEnableSubmit() {
+        // Enable submit button only when all questions are answered
+        if (this.submitButton && this.userAnswers.size === this.totalQuestions) {
+            this.submitButton.disabled = false;
         }
     }
     
-    initializeUI() {
-        // Render questions
-        this.renderQuestions();
+    updateProgress() {
+        if (!this.progressBar) return;
         
-        // Update progress bars
-        this.updateProgress();
+        const answeredCount = this.userAnswers.size;
+        const percentage = Math.min(100, Math.round((answeredCount / this.totalQuestions) * 100));
         
-        // Set up accessibility
-        this.setupAccessibility();
+        this.progressBar.style.width = `${percentage}%`;
+        this.progressBar.setAttribute('aria-valuenow', percentage);
     }
     
     checkExistingAttempts() {
@@ -111,138 +190,70 @@ class TriviaApp {
             this.setCookie('trivia_version', this.version);
         }
         
-        this.updateAttemptDisplay();
+        // Update UI based on attempts
+        this.updateAttemptUI();
     }
     
-    renderQuestions() {
-        Object.entries(this.questions).forEach(([category, questions]) => {
-            const container = this.quizContainers[category];
-            if (!container) return;
-            
-            const html = questions.map((question, index) => {
-                const questionId = `${category}${index}`;
-                const answersHtml = Object.entries(question.answers).map(([key, value]) => `
-                    <label class="answer-option" for="${questionId}-${key}">
-                        <input type="radio" 
-                               id="${questionId}-${key}" 
-                               name="${questionId}" 
-                               value="${key}"
-                               ${this.userAnswers.get(questionId) === key ? 'checked' : ''}>
-                        <span class="answer-letter">${key}</span>
-                        <span class="answer-text">${value}</span>
-                    </label>
-                `).join('');
-                
-                return `
-                    <div class="question-card" data-category="${category}" data-index="${index}">
-                        <h3 class="question-text">${question.question}</h3>
-                        <div class="answers-container">
-                            ${answersHtml}
-                        </div>
-                        <div class="feedback" id="feedback-${questionId}" aria-live="polite"></div>
-                    </div>
-                `;
-            }).join('');
-            
-            container.innerHTML = html;
-        });
-    }
-    
-    setupAccessibility() {
-        // Add ARIA labels and roles
-        Object.keys(this.quizContainers).forEach(category => {
-            const container = this.quizContainers[category];
-            const results = this.resultsContainers[category];
-            
-            if (container) {
-                container.setAttribute('role', 'form');
-                container.setAttribute('aria-labelledby', `category-title-${category}`);
-            }
-            
-            if (results) {
-                results.setAttribute('aria-live', 'polite');
-            }
-        });
-        
-        // Ensure proper tab order
-        const allInputs = document.querySelectorAll('input[type="radio"]');
-        allInputs.forEach((input, index) => {
-            input.setAttribute('tabindex', '0');
-        });
-    }
-    
-    updateProgress() {
-        const answeredCount = this.userAnswers.size;
-        const percentage = Math.round((answeredCount / this.totalQuestions) * 100);
-        
-        this.progressBars.forEach(bar => {
-            bar.style.width = `${percentage}%`;
-            bar.setAttribute('aria-valuenow', percentage);
-        });
-        
-        // Update progress text
-        const progressText = document.querySelector('.progress-text');
-        if (progressText) {
-            progressText.textContent = `${answeredCount}/${this.totalQuestions} preguntas respondidas`;
+    updateAttemptUI() {
+        // Hide submit button if max attempts reached
+        if (this.submitButton && this.currentAttempt > this.maxAttempts) {
+            this.submitButton.style.display = 'none';
         }
     }
     
     async handleSubmit() {
         if (this.isProcessing) return;
         if (this.currentAttempt >= this.maxAttempts) {
-            this.showMaxAttemptsMessage();
+            this.showError('Has alcanzado el máximo de intentos (3). ¡Gracias por jugar!');
             return;
         }
         
         this.isProcessing = true;
-        this.submitButton.disabled = true;
-        this.submitButton.textContent = 'Procesando...';
-        
-        // Small delay to show processing state
-        await this.delay(500);
+        if (this.submitButton) {
+            this.submitButton.disabled = true;
+            this.submitButton.textContent = 'Procesando...';
+        }
         
         try {
+            await this.delay(300); // Small delay for UX
+            
             this.score = 0;
             this.clearPreviousFeedback();
             
             // Grade each category
-            Object.entries(this.questions).forEach(([category, questions]) => {
-                const categoryScore = this.gradeCategory(category, questions);
+            let categoryResults = {};
+            Object.entries(this.questions).forEach(([categoryKey, questions]) => {
+                const categoryScore = this.gradeCategory(categoryKey, questions);
                 this.score += categoryScore;
-                this.updateCategoryResults(category, categoryScore, questions.length);
+                categoryResults[categoryKey] = { score: categoryScore, total: questions.length };
             });
             
-            // Update final result
-            this.updateFinalResult();
+            // Show results
+            this.showResults(categoryResults);
             
             // Save attempt
             this.saveAttempt();
             
-            // Show completion message
-            this.showCompletionMessage();
+            // Enable sharing
+            this.enableSharing();
             
         } catch (error) {
             console.error('Error processing quiz:', error);
             this.showError('Hubo un error al procesar tus respuestas. Por favor, intenta de nuevo.');
         } finally {
             this.isProcessing = false;
-            this.submitButton.disabled = false;
-            this.submitButton.textContent = 'Obtener los resultados';
-            
-            // Hide submit button if max attempts reached
-            if (this.currentAttempt >= this.maxAttempts) {
-                this.submitButton.style.display = 'none';
+            if (this.submitButton) {
+                this.submitButton.disabled = false;
+                this.submitButton.textContent = 'Ver Resultados';
             }
         }
     }
     
-    gradeCategory(category, questions) {
+    gradeCategory(categoryKey, questions) {
         let categoryScore = 0;
-        const container = this.quizContainers[category];
-        const answerContainers = container.querySelectorAll('.question-card');
         
         questions.forEach((question, index) => {
-            const questionId = `${category}${index}`;
+            const questionId = `${categoryKey}${index}`;
             const userAnswer = this.userAnswers.get(questionId);
             const isCorrect = userAnswer === question.correctAnswer;
             
@@ -272,107 +283,159 @@ class TriviaApp {
         });
     }
     
-    updateCategoryResults(category, score, total) {
-        const resultsElement = this.resultsContainers[category];
-        if (resultsElement) {
-            resultsElement.innerHTML = `
-                <div class="category-result">
-                    <span class="score">${score}</span>
-                    <span class="total">de ${total}</span>
+    showResults(categoryResults) {
+        // Show results section
+        if (this.resultsSection) {
+            this.resultsSection.hidden = false;
+        }
+        
+        // Update final score
+        if (this.finalScoreElement) {
+            this.finalScoreElement.innerHTML = `
+                <div class="score-display">
+                    <span class="score-number">${this.score}</span>
+                    <span class="score-text">de ${this.totalQuestions} posibles</span>
                 </div>
+                <div class="attempt-info">Intento ${this.currentAttempt} de ${this.maxAttempts}</div>
             `;
+        }
+        
+        // Update performance feedback
+        if (this.performanceFeedback) {
+            let feedbackText = '';
+            const percentage = (this.score / this.totalQuestions) * 100;
+            
+            if (percentage >= 80) {
+                feedbackText = '¡Excelente trabajo! Eres un verdadero experto scout. 🏆';
+            } else if (percentage >= 60) {
+                feedbackText = '¡Muy bien! Tienes buenos conocimientos scout. 👍';
+            } else if (percentage >= 40) {
+                feedbackText = 'Bien hecho. Sigue aprendiendo sobre escultismo. 📚';
+            } else {
+                feedbackText = 'No te desanimes. ¡Sigue practicando y mejorarás! 💪';
+            }
+            
+            this.performanceFeedback.textContent = feedbackText;
+        }
+        
+        // Update category breakdown
+        if (this.categoryBreakdown) {
+            const categories = [
+                { key: 'badenPowell', title: 'Baden Powell' },
+                { key: 'libros', title: 'Libros' },
+                { key: 'tecnica', title: 'Técnica' }
+            ];
+            
+            const breakdownHtml = categories.map(cat => {
+                const result = categoryResults[cat.key];
+                if (!result) return '';
+                return `<div class="category-result"><strong>${cat.title}:</strong> ${result.score}/${result.total}</div>`;
+            }).join('');
+            
+            this.categoryBreakdown.innerHTML = breakdownHtml;
+        }
+        
+        // Show retry button
+        if (this.retryButton) {
+            this.retryButton.hidden = false;
         }
     }
     
-    updateFinalResult() {
-        this.finalResult.innerHTML = `
-            <div class="final-score">
-                <span class="score-number">${this.score}</span>
-                <span class="score-text">de ${this.totalQuestions} posibles</span>
-                <div class="attempt-info">Intento ${this.currentAttempt} de ${this.maxAttempts}</div>
-            </div>
-        `;
+    enableSharing() {
+        if (this.shareBtn) {
+            this.shareBtn.disabled = false;
+        }
+    }
+    
+    showShareOptions() {
+        if (this.socialShare) {
+            this.socialShare.hidden = false;
+        }
     }
     
     saveAttempt() {
         this.currentAttempt++;
         this.setCookie('trivia_attempts', this.currentAttempt.toString());
-        this.updateAttemptDisplay();
+        this.updateAttemptUI();
     }
     
-    updateAttemptDisplay() {
-        const attemptInfo = document.querySelector('.attempt-info');
-        if (attemptInfo) {
-            attemptInfo.textContent = `Intento ${this.currentAttempt} de ${this.maxAttempts}`;
-        }
-    }
-    
-    showMaxAttemptsMessage() {
-        this.showError('Has alcanzado el máximo de intentos (3). ¡Gracias por jugar!');
-    }
-    
-    showCompletionMessage() {
-        // Auto-scroll to results
-        this.finalResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-    
-    showError(message) {
-        // Create or update error message
-        let errorDiv = document.getElementById('error-message');
-        if (!errorDiv) {
-            errorDiv = document.createElement('div');
-            errorDiv.id = 'error-message';
-            errorDiv.className = 'error-message';
-            document.body.insertBefore(errorDiv, document.body.firstChild);
-        }
-        errorDiv.textContent = message;
-        errorDiv.style.display = 'block';
+    retryQuiz() {
+        // Clear user answers
+        this.userAnswers.clear();
         
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-            errorDiv.style.display = 'none';
-        }, 5000);
+        // Re-render the quiz
+        this.renderQuiz();
+        
+        // Hide results
+        if (this.resultsSection) {
+            this.resultsSection.hidden = true;
+        }
+        if (this.socialShare) {
+            this.socialShare.hidden = true;
+        }
+        if (this.retryButton) {
+            this.retryButton.hidden = true;
+        }
+        
+        // Reset progress
+        this.updateProgress();
+        
+        // Disable submit button
+        if (this.submitButton) {
+            this.submitButton.disabled = true;
+        }
+    }
+    
+    refreshApp() {
+        this.retryQuiz();
     }
     
     handleShare(e) {
         const platform = e.currentTarget.dataset.platform;
         const score = this.score;
         const total = this.totalQuestions;
-        const shareUrl = this.getShareUrl(platform, score, total);
+        const baseUrl = 'https://jgomezr.github.io/Trivia/';
+        
+        let shareUrl = '';
+        let shareText = `¡Obtuve ${score} de ${total} en Trivia Scout!`;
+        
+        switch (platform) {
+            case 'whatsapp':
+                shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + baseUrl)}`;
+                break;
+            case 'telegram':
+                shareUrl = `https://t.me/share/url?url=${encodeURIComponent(baseUrl)}&text=${encodeURIComponent(shareText)}`;
+                break;
+            case 'copy':
+                navigator.clipboard.writeText(`${shareText} ${baseUrl}`)
+                    .then(() => this.showToast('¡Enlace copiado al portapapeles!'))
+                    .catch(err => console.error('Error copying to clipboard:', err));
+                return;
+            default:
+                return;
+        }
         
         if (shareUrl) {
             window.open(shareUrl, '_blank', 'width=600,height=400');
         }
     }
     
-    getShareUrl(platform, score, total) {
-        const baseUrl = 'http://jgomezr.github.io/Trivia/';
-        const scorePage = Math.min(score, 8); // Cap at 8 for existing pages
+    showToast(message) {
+        const toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) return;
         
-        switch (platform) {
-            case 'facebook':
-                return `https://www.facebook.com/sharer.php?u=${encodeURIComponent(baseUrl + 'score/' + scorePage + '.html')}&t=Trivia%20Scout`;
-            case 'twitter':
-                return `https://twitter.com/intent/tweet?text=¡Obtuve ${score} de ${total} en Trivia Scout!&url=${encodeURIComponent(baseUrl)}`;
-            case 'whatsapp':
-                return `https://api.whatsapp.com/send?text=¡Obtuve ${score} de ${total} en Trivia Scout! ${baseUrl}`;
-            default:
-                return null;
-        }
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
     }
     
-    refreshApp() {
-        // Clear user answers but keep the same questions
-        this.userAnswers.clear();
-        this.renderQuestions();
-        this.updateProgress();
-        this.clearPreviousFeedback();
-        
-        // Reset results display
-        Object.values(this.resultsContainers).forEach(container => {
-            if (container) container.innerHTML = '';
-        });
-        this.finalResult.innerHTML = '';
+    showError(message) {
+        this.showToast(message);
     }
     
     // Utility methods
@@ -396,5 +459,10 @@ class TriviaApp {
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new TriviaApp();
+    // Check if questions are loaded
+    if (typeof QUESTIONS !== 'undefined') {
+        new TriviaApp();
+    } else {
+        console.error('QUESTIONS not defined - make sure questions.js is loaded before trivia-app.js');
+    }
 });

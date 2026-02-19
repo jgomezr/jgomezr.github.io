@@ -4,7 +4,7 @@ const TRIVIA_VERSION = "v10";
 
 // Expanded question bank with more categories and questions
 const QUESTIONS = {
-  badenPowell: [
+  bp: [
     {
       question: "¿Cuál era el nombre del territorio donde Baden Powell se enfrentó con los Ashanti?",
       answers: {
@@ -144,17 +144,5 @@ const QUESTIONS = {
   ]
 };
 
-// Function to get all questions for a category
-function getQuestionsByCategory(category) {
-  return QUESTIONS[category] || [];
-}
-
-// Function to get all questions combined
-function getAllQuestions() {
-  return Object.values(QUESTIONS).flat();
-}
-
-// Function to get questions by difficulty
-function getQuestionsByDifficulty(difficulty) {
-  return getAllQuestions().filter(q => q.difficulty === difficulty);
-}
+// Make questions globally available
+window.questions = QUESTIONS;
