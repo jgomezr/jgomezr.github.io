@@ -1,12 +1,12 @@
 /**
- * Enhanced Trivia Scout App - FINAL VERSION
+ * Enhanced Trivia Scout App - FINAL CORRECTED VERSION
  * Modern, accessible, and feature-rich trivia application
- * Version: 3.0.0 (JSON questions + Instagram sharing)
+ * Version: 2.1.0 (JSON questions + Instagram sharing)
  */
 
 class TriviaApp {
     constructor() {
-        this.version = "v11";
+        this.version = "v10";
         this.currentAttempt = 1;
         this.maxAttempts = 3;
         this.score = 0;
@@ -24,10 +24,13 @@ class TriviaApp {
         this.categoryBreakdown = document.getElementById('categoryBreakdown');
         this.resultsSection = document.getElementById('resultsSection');
         this.socialShare = document.getElementById('socialShare');
+        this.instagramShare = document.getElementById('instagramShare');
         this.progressBar = document.getElementById('progressBar');
         this.shareBtn = document.getElementById('shareBtn');
         this.refreshBtn = document.getElementById('refreshBtn');
-        this.instagramShareBtn = document.getElementById('instagramShareBtn');
+        this.showInstagramBtn = document.getElementById('showInstagram');
+        this.downloadInstagramBtn = document.getElementById('downloadInstagram');
+        this.instagramCanvas = document.getElementById('instagramCanvas');
         
         // Initialize the app
         this.init();
@@ -49,7 +52,7 @@ class TriviaApp {
             this.checkExistingAttempts();
             
         } catch (error) {
-            console.error('Failed to load questions:', error);
+            console.error('Failed to initialize app:', error);
             this.showError('No se pudieron cargar las preguntas. Por favor, recarga la página.');
         }
     }
@@ -71,8 +74,12 @@ class TriviaApp {
             this.shareBtn.addEventListener('click', () => this.showShareOptions());
         }
         
-        if (this.instagramShareBtn) {
-            this.instagramShareBtn.addEventListener('click', () => this.generateInstagramImage());
+        if (this.showInstagramBtn) {
+            this.showInstagramBtn.addEventListener('click', () => this.showInstagramShare());
+        }
+        
+        if (this.downloadInstagramBtn) {
+            this.downloadInstagramBtn.addEventListener('click', () => this.downloadInstagramImage());
         }
         
         // Share buttons
@@ -347,9 +354,6 @@ class TriviaApp {
         if (this.shareBtn) {
             this.shareBtn.disabled = false;
         }
-        if (this.instagramShareBtn) {
-            this.instagramShareBtn.style.display = 'inline-block';
-        }
     }
     
     showShareOptions() {
@@ -358,33 +362,29 @@ class TriviaApp {
         }
     }
     
-    async generateInstagramImage() {
-        try {
-            const imageData = await ImageGenerator.generateScoreImage(
-                this.score,
-                this.totalQuestions,
-                this.getUserName()
-            );
-            
-            // Create download link
-            const link = document.createElement('a');
-            link.download = `trivia-scout-score-${this.score}-of-${this.totalQuestions}.png`;
-            link.href = imageData;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            this.showToast('¡Imagen generada! Abre tu galería para compartir en Instagram.');
-            
-        } catch (error) {
-            console.error('Error generating image:', error);
-            this.showError('No se pudo generar la imagen. Intenta de nuevo.');
+    showInstagramShare() {
+        if (this.instagramShare) {
+            this.instagramShare.hidden = false;
+            // Generate the Instagram image preview
+            this.generateInstagramPreview();
         }
     }
     
-    getUserName() {
-        // You can customize this to get user's name from input or localStorage
-        return 'Scout';
+    generateInstagramPreview() {
+        if (this.instagramCanvas && this.questions) {
+            ImageGenerator.generateScoreImage(
+                this.instagramCanvas,
+                this.score,
+                this.totalQuestions,
+                'Trivia Scout'
+            );
+        }
+    }
+    
+    downloadInstagramImage() {
+        if (this.instagramCanvas) {
+            ImageGenerator.downloadImage(this.instagramCanvas, 'trivia-scout-score.png');
+        }
     }
     
     saveAttempt() {
@@ -407,11 +407,11 @@ class TriviaApp {
         if (this.socialShare) {
             this.socialShare.hidden = true;
         }
+        if (this.instagramShare) {
+            this.instagramShare.hidden = true;
+        }
         if (this.retryButton) {
             this.retryButton.hidden = true;
-        }
-        if (this.instagramShareBtn) {
-            this.instagramShareBtn.style.display = 'none';
         }
         
         // Reset progress
