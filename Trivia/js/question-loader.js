@@ -9,7 +9,15 @@ class QuestionLoader {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const questionsData = await response.json();
-            return questionsData;
+            
+            // Extract categories from the JSON structure
+            if (questionsData.categories) {
+                console.log('Extracting categories from JSON structure');
+                return questionsData.categories;
+            } else {
+                console.log('Using direct categories structure');
+                return questionsData;
+            }
         } catch (error) {
             console.error('Failed to load questions:', error);
             // Fallback to hardcoded questions if JSON fails

@@ -39,8 +39,9 @@ class TriviaApp {
     async init() {
         try {
             // Load questions from JSON
-            this.questions = await QuestionLoader.loadQuestions();
-            this.totalQuestions = Object.values(this.questions).reduce((total, category) => total + category.length, 0);
+            const questionsData = await QuestionLoader.loadQuestions();
+            this.questions = questionsData.categories; // Extract categories from the loaded data
+            this.totalQuestions = Object.values(this.questions).reduce((total, category) => total + category.questions.length, 0);
             
             // Setup event listeners
             this.setupEventListeners();
