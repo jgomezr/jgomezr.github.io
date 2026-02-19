@@ -1,43 +1,72 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-161720746-1"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'UA-161720746-1');
-  </script>
-	<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-TVFHJR4');</script>
-<!-- End Google Tag Manager -->
-  <meta charset="utf-8">
-  <title>Trivia scout - Obtuviste 6 puntos</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Obtuviste 6 puntos en Trivia Scout">
-  <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
-  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="style.css">
-  <link rel="apple-touch-icon" href="images/6.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Excelente! - Trivia Scout</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 1rem;
+            max-width: 500px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .score {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .message {
+            font-size: 1.2rem;
+            margin: 1rem 0;
+            line-height: 1.5;
+        }
+        .emoji {
+            font-size: 3rem;
+            margin: 1rem 0;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 2rem;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
 </head>
 <body>
-  <!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TVFHJR4"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
-  <div>
-    <h3><img src="images/icon.png" alt="Trivia scout" height="42" width="42">Trivia Scout</h3>
-    <a id="submit" href="http://jgomezr.github.io/Trivia/">Intentar Trivia Scout</a>
-    <br>
-    <br>
-    <br>
-  </div>
-  <img src="images/6.png" alt="Trivia scout" height="50%" width="50%">
-
+    <div class="container">
+        <div class="emoji">🏆</div>
+        <h1>¡Excelente!</h1>
+        <div class="score">6/15</div>
+        <div class="message">
+            ¡Muy buen trabajo! Has demostrado un sólido conocimiento scout. 
+            Sigue así y continúa aprendiendo más sobre el escultismo.
+        </div>
+        <a href="../index.html" class="back-link">Volver al Trivia</a>
+    </div>
 </body>
 </html>

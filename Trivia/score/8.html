@@ -1,43 +1,116 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-161720746-1"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'UA-161720746-1');
-  </script>
-	<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-TVFHJR4');</script>
-<!-- End Google Tag Manager -->
-  <meta charset="utf-8">
-  <title>Trivia scout - Obtuviste 8 puntos</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Obtuviste 8 puntos en Trivia Scout">
-  <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
-  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="style.css">
-  <link rel="apple-touch-icon" href="images/8.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Perfecto! - Trivia Scout</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        .score-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 1rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .score-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .score-text {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .trophy {
+            font-size: 4rem;
+            margin: 1rem 0;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-20px);}
+            60% {transform: translateY(-10px);}
+        }
+        .share-btn {
+            background: #4267B2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        .share-btn:hover {
+            background: #365899;
+            transform: scale(1.05);
+        }
+        .back-btn {
+            background: #297;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        .back-btn:hover {
+            background: #3a8;
+            transform: scale(1.05);
+        }
+    </style>
 </head>
 <body>
-  <!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TVFHJR4"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
-  <div>
-    <h3><img src="images/icon.png" alt="Trivia scout" height="42" width="42">Trivia Scout</h3>
-    <a id="submit" href="http://jgomezr.github.io/Trivia/">Intentar Trivia Scout</a>
-    <br>
-    <br>
-    <br>
-  </div>
-  <img src="images/8.png" alt="Trivia scout" height="50%" width="50%">
+    <div class="score-container">
+        <div class="trophy">🏆</div>
+        <h1 class="score-title">¡Perfecto!</h1>
+        <p class="score-text">Has respondido correctamente a todas las preguntas</p>
+        <p class="score-text">8 de 8 respuestas correctas</p>
+        <p class="score-text">Eres un verdadero experto scout 🏕️</p>
+        
+        <div>
+            <button class="share-btn" onclick="shareResult()">Compartir Resultado</button>
+            <button class="back-btn" onclick="goBack()">Volver al Quiz</button>
+        </div>
+    </div>
 
+    <script>
+        function shareResult() {
+            const text = '¡He logrado un puntaje perfecto en la Trivia Scout! 8/8 respuestas correctas. ¿Puedes superarlo?';
+            const url = 'https://jgomezr.github.io/Trivia/';
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: '¡Perfecto en Trivia Scout!',
+                    text: text,
+                    url: url
+                }).catch(console.error);
+            } else {
+                // Fallback to traditional sharing
+                window.open(`https://www.facebook.com/sharer.php?u=${encodeURIComponent(url)}&t=${encodeURIComponent('¡Perfecto en Trivia Scout!')}`);
+            }
+        }
+        
+        function goBack() {
+            window.location.href = '../index.html';
+        }
+    </script>
 </body>
 </html>

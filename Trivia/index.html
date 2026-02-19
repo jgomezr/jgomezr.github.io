@@ -1,110 +1,136 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-161720746-1"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'UA-161720746-1');
-  </script>
-
-  <link rel="manifest" href="manifest.json">
   <meta charset="utf-8">
-  <title>Trivia scout</title>
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+  <title>Trivia Scout - Mejorada</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Trivia Scout - Aplicación interactiva para poner a prueba tu conocimiento scout con preguntas actualizadas y mejoras modernas">
+  <meta name="theme-color" content="#d80000">
+  
+  <!-- Open Graph / Social Media Meta Tags -->
+  <meta property="og:title" content="Trivia Scout - Mejorada">
+  <meta property="og:description" content="Pon a prueba tu conocimiento scout con esta trivia mejorada">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="images/icon.png">
+  
+  <!-- Icons -->
   <link rel="icon" href="images/favicon.ico" type="image/x-icon">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="white"/>
-  <meta name="apple-mobile-web-app-capable" content="yes">  
-  <meta name="apple-mobile-web-app-status-bar-style" content="black"> 
-  <meta name="apple-mobile-web-app-title" content="Trivia scout">
   <link rel="apple-touch-icon" href="images/icon.png">
-  <meta name="msapplication-TileColor" content="#FFFFFF"> 
-  <meta name="description" content="Trivia scout aplicación para pasar el rato poniendo a prueba nuestro conocimiento scout">
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Preload critical resources -->
+  <link rel="preload" as="script" href="js/questions.js">
+  <link rel="preload" as="script" href="js/trivia-app.js">
 </head>
 <body>
-  <div>
-    <h3><img src="images/icon.png" alt="Trivia scout" height="42" width="42">Trivia Scout</h3>
-    <p>Escoge las respuestas correcta, has click en el botón "Obtener resultados", comparte, cada semana tendremos preguntas diferentes</p>
-    <p>Solo tienes 3 intentos así que escoge sabiamente</p>
-    <hr>
-  </div>
-  <div>
-    <h2 style="background: url(images/3.png);background-repeat: no-repeat;color: white;">Baden Powell</h2>
-    <div id="quiz"></div>
-    <div id="results"></div>
-  </div>
-  <div>
-    <h2 style="background: url(images/2.png);background-repeat: no-repeat;color: white;">Libros</h2>
-    <div id="quiz2"></div>
-    <div id="results2"></div>
-  </div>
-  <div>
-    <h2 style="background: url(images/1.png);background-repeat: no-repeat;color: white;">Técnica</h2>
-    <div id="quiz3"></div>
-    <div id="results3"></div>
-  </div>
-  <div>
-    <h2>Resultado final</h2>
-    <h2 id="resultFinal"></h2>
-  </div>
-	<br>
-	<button id="submit" onclick="">Obtener los resultados</button>
-  <div>
-    
-    <div id="resultButton"><button id="compartir" onclick="share()">Compartir en Facebook</button><br></div>
-  </div>
   <header class="header">
-    <h1>
-      Trivia scout
-      <a href="https://github.com/jgomezr" class="powered-by">
-        Powered by Puma Pardo
-      </a>
-    </h1>
-    <button id="butInstall" aria-label="Install" hidden>Instalar</button>
-    <button id="butRefresh" aria-label="Refresh">Refrescar</button>
+    <div class="header-content">
+      <h1>
+        <img src="images/icon.png" alt="Trivia Scout" class="header-icon">
+        Trivia Scout
+      </h1>
+      <div class="header-actions">
+        <button id="shareBtn" class="btn share-btn" aria-label="Compartir resultados" disabled>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+            <polyline points="16 6 12 2 8 6"></polyline>
+            <line x1="12" y1="2" x2="12" y2="15"></line>
+          </svg>
+        </button>
+        <button id="refreshBtn" class="btn refresh-btn" aria-label="Refrescar preguntas">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="progress-container" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
   </header>
 
-	<script>
+  <main class="main-content">
+    <div class="intro-section">
+      <p class="intro-text">¡Bienvenido a la Trivia Scout! Pon a prueba tus conocimientos sobre Baden Powell, libros scout y técnica scout.</p>
+      <p class="rules-text">• Tienes <strong>3 intentos</strong> por semana<br>• Selecciona una respuesta por pregunta<br>• ¡Diviértete y aprende!</p>
+    </div>
+
+    <div class="categories-container">
+      <!-- Categories will be dynamically generated -->
+    </div>
+
+    <div class="results-section" id="resultsSection" hidden>
+      <h2 class="section-title">Resultados</h2>
+      <div class="final-score" id="finalScore"></div>
+      <div class="performance-feedback" id="performanceFeedback"></div>
+      <div class="category-breakdown" id="categoryBreakdown"></div>
+    </div>
+
+    <div class="actions-section">
+      <button id="submitBtn" class="btn primary-btn" disabled>
+        Ver Resultados
+      </button>
+      <button id="retryBtn" class="btn secondary-btn" hidden>
+        Intentar de Nuevo
+      </button>
+    </div>
+
+    <div class="social-share" id="socialShare" hidden>
+      <h3>Comparte tus resultados:</h3>
+      <div class="share-buttons">
+        <button class="share-option whatsapp" data-platform="whatsapp">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+          </svg>
+          WhatsApp
+        </button>
+        <button class="share-option telegram" data-platform="telegram">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 19l-7-3 2-8 5 5 5-5 2 8-7 3z"></path>
+          </svg>
+          Telegram
+        </button>
+        <button class="share-option copy" data-platform="copy">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Copiar
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>Powered by Puma Pardo</p>
+    <p>Versión mejorada con más preguntas y funcionalidades modernas</p>
+  </footer>
+
+  <!-- Toast notification container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Service Worker Registration -->
+  <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
           .then((reg) => {
-          console.log('Service worker registered.', reg);
-        });
+            console.log('Service worker registered.', reg);
+          })
+          .catch((err) => {
+            console.log('Service worker registration failed:', err);
+          });
       });
-    } 
+    }
   </script>
-  <script src="js/quiz.js"></script>
-  <script src="js/install.js"></script>
-  <script type="text/javascript">
-    function share(){
-      var result = document.getElementById('resultFinal').innerHTML;
-      var res = result.slice(0,1);
-      if (res == '1') {
-        window.open("https://www.facebook.com/sharer.php?u=http://jgomezr.github.io/Trivia/score/1.html&amp;t=Trivia%20Scout"); 
-      }else if (res == '2') {
-        window.open("https://www.facebook.com/sharer.php?u=http://jgomezr.github.io/Trivia/score/2.html&amp;t=Trivia%20Scout"); 
-      }else if (res == '3') {
-        window.open("https://www.facebook.com/sharer.php?u=http://jgomezr.github.io/Trivia/score/3.html&amp;t=Trivia%20Scout"); 
-      }else if (res == '4') {
-        window.open("https://www.facebook.com/sharer.php?u=http://jgomezr.github.io/Trivia/score/4.html&amp;t=Trivia%20Scout"); 
-      }else if (res == '5') {
-        window.open("https://www.facebook.com/sharer.php?u=http://jgomezr.github.io/Trivia/score/5.html&amp;t=Trivia%20Scout"); 
-      }else if (res == '6') {
-        window.open("https://www.facebook.com/sharer.php?u=http://jgomezr.github.io/Trivia/score/6.html&amp;t=Trivia%20Scout"); 
-      }else if (res == '7') {
-        window.open("https://www.facebook.com/sharer.php?u=http://jgomezr.github.io/Trivia/score/7.html&amp;t=Trivia%20Scout"); 
-      }else if (res == '8') {
-        window.open("https://www.facebook.com/sharer.php?u=http://jgomezr.github.io/Trivia/score/8.html&amp;t=Trivia%20Scout"); 
-      }else{
-        window.alert('No tienes resultados intentalo nuevamente');
-      }
-      
-    }</script>
 
+  <!-- Scripts -->
+  <script src="js/questions.js"></script>
+  <script src="js/trivia-app.js"></script>
 </body>
 </html>

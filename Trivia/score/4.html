@@ -1,43 +1,78 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-161720746-1"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'UA-161720746-1');
-  </script>
-	<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-TVFHJR4');</script>
-<!-- End Google Tag Manager -->
   <meta charset="utf-8">
-  <title>Trivia scout - Obtuviste 4 puntos</title>
+  <title>Trivia Scout - Resultado 4/15</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Obtuviste 4 puntos en Trivia Scout">
-  <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
-  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="style.css">
-  <link rel="apple-touch-icon" href="images/1.png">
+  <meta name="description" content="¡Obtuve 4 de 15 puntos en la Trivia Scout! ¿Puedes superarlo?">
+  <meta property="og:title" content="Trivia Scout - Resultado 4/15">
+  <meta property="og:description" content="¡Obtuve 4 de 15 puntos en la Trivia Scout! ¿Puedes superarlo?">
+  <meta property="og:image" content="https://jgomezr.github.io/Trivia/images/share-4.png">
+  <meta property="og:url" content="https://jgomezr.github.io/Trivia/score/4.html">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      text-align: center; 
+      padding: 2rem; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .score-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.1);
+      padding: 2rem;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+    .score {
+      font-size: 4rem;
+      font-weight: bold;
+      margin: 1rem 0;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .message {
+      font-size: 1.2rem;
+      margin: 1rem 0;
+    }
+    .btn {
+      background: #ff6b6b;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 25px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      margin: 1rem;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .btn:hover {
+      background: #ff5252;
+      transform: translateY(-2px);
+    }
+    .btn-primary {
+      background: #4ecdc4;
+    }
+    .btn-primary:hover {
+      background: #44a89f;
+    }
+  </style>
 </head>
 <body>
-  <!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TVFHJR4"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
-  <div>
-    <h3><img src="images/icon.png" alt="Trivia scout" height="42" width="42">Trivia Scout</h3>
-    <a id="submit" href="http://jgomezr.github.io/Trivia/">Intentar Trivia Scout</a>
-    <br>
-    <br>
-    <br>
+  <div class="score-container">
+    <h1>🏆 Trivia Scout</h1>
+    <div class="score">4 / 15</div>
+    <div class="message">¡Sigue practicando! El conocimiento scout es un camino de aprendizaje continuo.</div>
+    <a href="https://jgomezr.github.io/Trivia/" class="btn btn-primary">Jugar de nuevo</a>
+    <div style="margin-top: 2rem; font-size: 0.9rem; opacity: 0.8;">
+      Comparte tu resultado y desafía a tus amigos scouts
+    </div>
   </div>
-  <img src="images/4.png" alt="Trivia scout" height="50%" width="50%">
-
 </body>
 </html>

@@ -1,43 +1,109 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-161720746-1"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'UA-161720746-1');
-  </script>
-	<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-TVFHJR4');</script>
-<!-- End Google Tag Manager -->
   <meta charset="utf-8">
-  <title>Trivia scout - Obtuviste 3 puntos</title>
+  <title>Trivia Scout - Resultado 3</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Obtuviste 3 puntos en Trivia Scout">
-  <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
-  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="style.css">
-  <link rel="apple-touch-icon" href="images/3.png">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .score-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 30px;
+      margin: 20px 0;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .score-number {
+      font-size: 4em;
+      font-weight: bold;
+      margin: 20px 0;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .message {
+      font-size: 1.2em;
+      margin: 20px 0;
+    }
+    .scout-icon {
+      width: 80px;
+      height: 80px;
+      margin: 20px 0;
+    }
+    .share-buttons {
+      margin: 30px 0;
+    }
+    .share-button {
+      background: #1877f2;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 25px;
+      margin: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: transform 0.2s;
+    }
+    .share-button:hover {
+      transform: scale(1.05);
+    }
+    @media (max-width: 600px) {
+      .score-number {
+        font-size: 3em;
+      }
+      .share-button {
+        display: block;
+        width: 80%;
+        margin: 10px auto;
+      }
+    }
+  </style>
 </head>
 <body>
-  <!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TVFHJR4"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
-  <div>
-    <h3><img src="images/icon.png" alt="Trivia scout" height="42" width="42">Trivia Scout</h3>
-    <a id="submit" href="http://jgomezr.github.io/Trivia/">Intentar Trivia Scout</a>
-    <br>
-    <br>
-    <br>
+  <div class="container">
+    <h1>¡Buen intento!</h1>
+    <div class="score-card">
+      <svg class="scout-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12,2L13.09,8.26L22,9L13.09,9.74L12,16L10.91,9.74L2,9L10.91,8.26L12,2Z"/>
+      </svg>
+      <div class="score-number">3/15</div>
+      <div class="message">Estás aprendiendo sobre el escultismo. ¡Sigue practicando!</div>
+    </div>
+    <div class="share-buttons">
+      <button class="share-button" onclick="shareResult()">Compartir Resultado</button>
+    </div>
+    <p><a href="../index.html" style="color: white; text-decoration: underline;">Volver al Trivia</a></p>
   </div>
-  <img src="images/3.png" alt="Trivia scout" height="50%" width="50%">
 
+  <script>
+    function shareResult() {
+      const text = '¡Obtuve 3/15 en la Trivia Scout! ¿Puedes superar mi puntaje? 🏕️';
+      const url = 'https://jgomezr.github.io/Trivia/';
+      
+      if (navigator.share) {
+        navigator.share({
+          title: 'Trivia Scout',
+          text: text,
+          url: url
+        }).catch(console.error);
+      } else {
+        // Fallback to traditional sharing
+        const shareUrl = `https://www.facebook.com/sharer.php?u=${encodeURIComponent(url)}&t=${encodeURIComponent('Trivia Scout')}`;
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+      }
+    }
+  </script>
 </body>
 </html>
