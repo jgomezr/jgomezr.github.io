@@ -372,18 +372,27 @@ class TriviaApp {
     
     generateInstagramPreview() {
         if (this.instagramCanvas && this.questions) {
-            ImageGenerator.generateScoreImage(
-                this.instagramCanvas,
+            const imageDataUrl = scoreImageGenerator.generateScoreImage(
                 this.score,
                 this.totalQuestions,
                 'Trivia Scout'
             );
+            if (imageDataUrl) {
+                const img = new Image();
+                img.onload = () => {
+                    this.ctx = this.instagramCanvas.getContext('2d');
+                    this.ctx.clearRect(0, 0, this.instagramCanvas.width, this.instagramCanvas.height);
+                    this.ctx.drawImage(img, 0, 0);
+                };
+                img.src = imageDataUrl;
+            }
         }
     }
     
     downloadInstagramImage() {
         if (this.instagramCanvas) {
-            ImageGenerator.downloadImage(this.instagramCanvas, 'trivia-scout-score.png');
+            const imageDataUrl = this.instagramCanvas.toDataURL('image/png');
+            scoreImageGenerator.downloadImage(imageDataUrl, 'trivia-scout-score.png');
         }
     }
     
