@@ -1,0 +1,92 @@
+/* --- Mobile (< 768px) --- */
+@media (max-width: 767px) {
+  .navbar__menu-btn {
+    display: block;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar--open {
+    transform: translateX(0);
+  }
+
+  .main--with-sidebar {
+    margin-left: 0;
+  }
+
+  .main {
+    padding: var(--space-md);
+  }
+
+  .charts-row {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .rover-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .checklist {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline {
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .toast-container {
+    left: var(--space-md);
+    right: var(--space-md);
+    bottom: var(--space-md);
+  }
+
+  .toast {
+    max-width: 100%;
+  }
+
+  .modal {
+    margin: var(--space-sm);
+  }
+
+  .tabs {
+    overflow-x: auto;
+  }
+}
+
+/* --- Tablet (768px - 1024px) --- */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .sidebar {
+    width: 220px;
+  }
+
+  .main--with-sidebar {
+    margin-left: 220px;
+  }
+
+  .charts-row {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* --- Desktop (> 1024px) --- */
+@media (min-width: 1025px) {
+  .stats-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}

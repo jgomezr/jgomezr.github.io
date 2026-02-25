@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <rect width="192" height="192" rx="24" fill="#F24150"/>
+  <path d="M96 30 L106 66 L144 66 L113 88 L123 124 L96 104 L69 124 L79 88 L48 66 L86 66 Z" fill="#FFC107"/>
+  <text x="96" y="172" text-anchor="middle" fill="white" font-family="Arial" font-size="28" font-weight="bold">ROVER</text>
+</svg>
