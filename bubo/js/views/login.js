@@ -43,7 +43,7 @@ export function renderLogin() {
               <input type="password" id="leader-pass" class="form-input" placeholder="Contraseña" required>
             </div>
             <button type="submit" class="btn btn--primary btn--block btn--lg" id="btn-leader-login">
-              Ingresar como Líder
+              Ingresar como Digirente
             </button>
           </form>
         </div>
