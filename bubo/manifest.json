@@ -1,0 +1,28 @@
+{
+  "name": "Progresión Rover Scout",
+  "short_name": "Rover Scout",
+  "description": "Gestión de progresión de Rovers Scout",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F24150",
+  "theme_color": "#F24150",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "assets/Bubo_app_logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/Bubo_app_logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/Bubo_app_logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
