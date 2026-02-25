@@ -54,7 +54,7 @@ export function loginAsLeader(username, password) {
   if (username === CONFIG.LEADER_USER && password === CONFIG.LEADER_PASS) {
     const user = {
       role: 'leader',
-      nombre: 'Líder',
+      nombre: 'Dirigente',
       correo: '',
       id: '',
       row: null,
