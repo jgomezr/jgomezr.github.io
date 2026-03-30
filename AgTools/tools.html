@@ -47,19 +47,19 @@ self.addEventListener('fetch',e=>{
 
 :root{
   --bg:#0d1a0f;
-  --bg3:#1c2e1f;
-  --surface:#1f3323;
-  --border:rgba(120,200,100,0.15);
-  --border2:rgba(120,200,100,0.3);
+  --bg3:#1e3022;
+  --surface:#263c28;
+  --border:rgba(120,200,100,0.22);
+  --border2:rgba(120,200,100,0.42);
   --green:#5fc46a;
   --green-dim:#3a7a42;
   --green-hi:#7edb8a;
   --amber:#e8b84b;
   --amber-dim:#a07c28;
   --red:#e05a4a;
-  --text:#d4e8c8;
-  --text2:#8aaa80;
-  --text3:#567050;
+  --text:#e8f5e0;
+  --text2:#a8c89a;
+  --text3:#7a9e70;
 }
 
 html,body{
@@ -1273,12 +1273,18 @@ function updHud(){
 async function saveReading(){
   const n=cnt();
   let gps=null;
-  if(navigator.geolocation){
-    gps=await new Promise(res=>navigator.geolocation.getCurrentPosition(
-      p=>res({lat:p.coords.latitude.toFixed(6),lng:p.coords.longitude.toFixed(6)}),
-      ()=>res(null),{timeout:4000}
-    ));
-  }
+  try{
+    if(navigator.geolocation){
+      gps=await Promise.race([
+        new Promise(res=>navigator.geolocation.getCurrentPosition(
+          p=>res({lat:p.coords.latitude.toFixed(6),lng:p.coords.longitude.toFixed(6)}),
+          ()=>res(null),
+          {timeout:5000,enableHighAccuracy:true,maximumAge:10000}
+        )),
+        new Promise(res=>setTimeout(()=>res(null),6000))
+      ]);
+    }
+  }catch(e){gps=null;}
   const r={id:S.readings.length+1,pct:n,timestamp:new Date().toISOString(),gps};
   S.readings.push(r);persist();
   toast('Punto '+r.id+' guardado · '+n+'%');
@@ -1656,17 +1662,23 @@ function txChoose(i){
 async function saveTxReading(){
   if(!txPendingResult) return;
   const btn=document.getElementById('tx-save-btn');
-  if(btn){btn.textContent='Guardando…';btn.disabled=true;}
+  if(btn){btn.textContent='📍 Capturando GPS…';btn.disabled=true;}
 
   let gps=null;
-  if(navigator.geolocation){
-    gps=await new Promise(res=>
-      navigator.geolocation.getCurrentPosition(
-        p=>res({lat:p.coords.latitude.toFixed(6),lng:p.coords.longitude.toFixed(6)}),
-        ()=>res(null),{timeout:4000}
-      )
-    );
-  }
+  try{
+    if(navigator.geolocation){
+      gps=await Promise.race([
+        new Promise(res=>
+          navigator.geolocation.getCurrentPosition(
+            p=>res({lat:p.coords.latitude.toFixed(6),lng:p.coords.longitude.toFixed(6)}),
+            ()=>res(null),
+            {timeout:5000,enableHighAccuracy:true,maximumAge:10000}
+          )
+        ),
+        new Promise(res=>setTimeout(()=>res(null),6000)) // fallback hard timeout
+      ]);
+    }
+  }catch(e){ gps=null; }
 
   const r=TX_RESULTS[txPendingResult];
   const muestra={
@@ -1684,7 +1696,8 @@ async function saveTxReading(){
 
   S.texturas.push(muestra);
   persist();
-  toast('Muestra T'+muestra.id+' guardada · '+muestra.nombre);
+  const gpsMsg=gps?(' · '+gps.lat+', '+gps.lng):'(sin GPS)';
+  toast('T'+muestra.id+' guardada · '+muestra.nombre+gpsMsg,2400);
   txPendingResult=null;
   txPendingHistory=[];
   goMenu();
