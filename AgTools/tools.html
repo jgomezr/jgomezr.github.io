@@ -1193,20 +1193,33 @@ async function startCam(){
   let st=null;
   for(const o of opts){try{st=await navigator.mediaDevices.getUserMedia(o);break;}catch(e){}}
 
-  if(!st){document.getElementById('cerr').style.display='flex';rszCv();setupEv();return;}
+  if(!st){document.getElementById('cerr').style.display='flex';setTimeout(rszCv,100);setupEv();return;}
   stream=st;vid.srcObject=st;vid.play();
-  rszCv();setupEv();
+  setTimeout(rszCv,100);setupEv();
 }
 
 function stopCam(){
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
 }
 
+let gridTop=0, gridBot=0; // márgenes reservados para los HUDs
+
 function rszCv(){
   cv=cv||document.getElementById('gcv');
   cx=cv.getContext('2d');
-  cv.width=window.innerWidth;cv.height=window.innerHeight;
-  cW=cv.width/NC;cH=cv.height/NR;drawGrid();
+  cv.width=window.innerWidth;
+  cv.height=window.innerHeight;
+
+  // Medir alturas reales de los HUDs para excluirlos de la grilla
+  const top=document.querySelector('.htop');
+  const bot=document.querySelector('.hbot');
+  gridTop = top ? top.getBoundingClientRect().height + 8 : 80;
+  gridBot = bot ? bot.getBoundingClientRect().height + 8 : 80;
+
+  const gridH = cv.height - gridTop - gridBot;
+  cW = cv.width / NC;
+  cH = gridH / NR;
+  drawGrid();
 }
 
 // ── GRID ──
@@ -1220,7 +1233,9 @@ function drawGrid(){
   if(!cx)return;
   cx.clearRect(0,0,cv.width,cv.height);
   for(let i=0;i<100;i++){
-    const c=i%NC,r=Math.floor(i/NC),x=c*cW,y=r*cH;
+    const c=i%NC, r=Math.floor(i/NC);
+    const x=c*cW;
+    const y=gridTop + r*cH;
     if(cells[i]){
       cx.fillStyle='rgba(95,196,106,0.42)';cx.fillRect(x+.5,y+.5,cW-1,cH-1);
       cx.strokeStyle='#5fc46a';cx.lineWidth=1.5;cx.strokeRect(x+.5,y+.5,cW-1,cH-1);
@@ -1230,7 +1245,7 @@ function drawGrid(){
     if(cW>36&&cH>36){
       cx.fillStyle=cells[i]?'rgba(13,26,15,.55)':'rgba(180,220,160,.18)';
       cx.font=Math.min(8,cW*.17)+'px monospace';
-      cx.fillText(i+1,x+3,y+9);
+      cx.fillText(i+1,x+3,y+7);
     }
   }
 }
@@ -1250,7 +1265,12 @@ function sc(e,t){
   if(t)return{x:(t.clientX-r.left)*sx,y:(t.clientY-r.top)*sy};
   return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};
 }
-function ci(x,y){const c=Math.floor(x/cW),r=Math.floor(y/cH);if(c<0||c>=NC||r<0||r>=NR)return -1;return r*NC+c;}
+function ci(x,y){
+  const c=Math.floor(x/cW);
+  const r=Math.floor((y-gridTop)/cH);
+  if(c<0||c>=NC||r<0||r>=NR)return -1;
+  return r*NC+c;
+}
 function mark(i){
   if(i<0||i===lastI)return;
   cells[i]=!cells[i];lastI=i;drawGrid();updHud();
