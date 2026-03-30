@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d1a0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Campo">
+<title>Herramientas para el Campo</title>
+
+<!-- PWA manifest inline -->
+<script>
+(function(){
+  const svg=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%230d1a0f'/><rect x='12' y='12' width='168' height='168' rx='8' stroke='%235fc46a' stroke-width='4' fill='none'/><line x1='12' y1='52' x2='180' y2='52' stroke='%235fc46a' stroke-width='2' opacity='.4'/><line x1='12' y1='92' x2='180' y2='92' stroke='%235fc46a' stroke-width='2' opacity='.4'/><line x1='12' y1='132' x2='180' y2='132' stroke='%235fc46a' stroke-width='2' opacity='.4'/><line x1='52' y1='12' x2='52' y2='180' stroke='%235fc46a' stroke-width='2' opacity='.4'/><line x1='92' y1='12' x2='92' y2='180' stroke='%235fc46a' stroke-width='2' opacity='.4'/><line x1='132' y1='12' x2='132' y2='180' stroke='%235fc46a' stroke-width='2' opacity='.4'/><rect x='93' y='53' width='38' height='38' fill='%235fc46a' opacity='.8' rx='3'/><rect x='53' y='93' width='38' height='38' fill='%235fc46a' opacity='.5' rx='3'/><rect x='133' y='93' width='38' height='38' fill='%235fc46a' opacity='.4' rx='3'/><rect x='93' y='133' width='38' height='38' fill='%235fc46a' opacity='.7' rx='3'/></svg>`;
+  const iconUrl=`data:image/svg+xml,${svg}`;
+  const manifest={name:'Herramientas para el Campo',short_name:'Campo',description:'Herramientas de diagnóstico agrícola de campo',start_url:'.',display:'standalone',orientation:'portrait',background_color:'#0d1a0f',theme_color:'#0d1a0f',icons:[{src:iconUrl,sizes:'192x192',type:'image/svg+xml'},{src:iconUrl,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
+  const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+  const link=document.createElement('link');
+  link.rel='manifest';link.href=URL.createObjectURL(blob);
+  document.head.appendChild(link);
+})();
+</script>
+
+<!-- Service Worker inline para offline -->
+<script>
+if('serviceWorker' in navigator){
+  const code=`
+const V='dc1';
+self.addEventListener('install',e=>{self.skipWaiting();});
+self.addEventListener('activate',e=>{e.waitUntil(clients.claim());});
+self.addEventListener('fetch',e=>{
+  if(e.request.method!=='GET')return;
+  e.respondWith(caches.open(V).then(c=>c.match(e.request).then(r=>{
+    if(r)return r;
+    return fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}).catch(()=>r);
+  })));
+});`;
+  const blob=new Blob([code],{type:'text/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+}
+</script>
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0d1a0f;
+  --bg3:#1c2e1f;
+  --surface:#1f3323;
+  --border:rgba(120,200,100,0.15);
+  --border2:rgba(120,200,100,0.3);
+  --green:#5fc46a;
+  --green-dim:#3a7a42;
+  --green-hi:#7edb8a;
+  --amber:#e8b84b;
+  --amber-dim:#a07c28;
+  --red:#e05a4a;
+  --text:#d4e8c8;
+  --text2:#8aaa80;
+  --text3:#567050;
+}
+
+html,body{
+  height:100%;background:var(--bg);color:var(--text);
+  font-family:ui-monospace,'Cascadia Code','Fira Mono',monospace;
+  overflow:hidden;-webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;-webkit-font-smoothing:antialiased;
+}
+
+/* Altura real en móvil: usa --vh calculado por JS, con dvh como ideal */
+.screen{
+  display:none;flex-direction:column;
+  height:100dvh;      /* navegadores modernos */
+  height:calc(var(--vh,1vh)*100); /* fallback JS para iOS/Android */
+}
+.screen.active{display:flex}
+
+/* HOME */
+#sh{
+  align-items:center;justify-content:space-between;
+  padding:0;
+  background:var(--bg);position:relative;overflow:hidden;
+  flex-direction:column;
+}
+#sh::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 39px,var(--border) 40px),
+             repeating-linear-gradient(90deg,transparent,transparent 39px,var(--border) 40px);
+}
+.home-main{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:2rem 2rem 1rem;
+  position:relative;width:100%;
+  min-height:0;
+}
+.home-footer{
+  width:100%;display:flex;flex-direction:column;
+  align-items:center;gap:5px;
+  padding:1rem 1.5rem 1.4rem;
+  border-top:1px solid var(--border);
+  position:relative;flex-shrink:0;
+}
+.hbadge{font-size:10px;letter-spacing:.18em;color:var(--text3);text-transform:uppercase;margin-bottom:1.2rem;position:relative}
+.htitle{font-size:clamp(1.8rem,7vw,3.2rem);font-weight:300;line-height:1.1;color:var(--green-hi);text-align:center;position:relative;margin-bottom:.5rem;letter-spacing:-.02em}
+.hsub{font-size:11px;color:var(--text3);letter-spacing:.12em;text-align:center;margin-bottom:2rem;position:relative}
+
+.bp{font-family:inherit;font-size:13px;letter-spacing:.08em;background:var(--green);color:#0d1a0f;border:none;padding:14px 36px;border-radius:2px;cursor:pointer;font-weight:600;transition:background .15s,transform .1s}
+.bp:active{transform:scale(.97);background:var(--green-hi)}
+.bg{font-family:inherit;font-size:12px;letter-spacing:.08em;background:transparent;color:var(--text2);border:1px solid var(--border2);padding:12px 28px;border-radius:2px;cursor:pointer;transition:background .15s;margin-top:12px}
+.bg:active{background:var(--surface)}
+
+/* SETUP */
+#ss{background:var(--bg);overflow:hidden}
+.shdr{padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.8rem;flex-shrink:0}
+.bbk{background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px;font-family:inherit;padding:4px}
+.stitle{font-size:1.1rem;font-weight:300;color:var(--green-hi)}
+.sbody{flex:1;overflow-y:auto;padding:1.2rem;display:flex;flex-direction:column;gap:1rem;-webkit-overflow-scrolling:touch}
+.flabel{font-size:10px;letter-spacing:.15em;color:var(--text3);text-transform:uppercase;margin-bottom:5px}
+.finput{font-family:inherit;font-size:14px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:2px;padding:11px 13px;width:100%;outline:none;transition:border-color .15s;-webkit-appearance:none}
+.finput:focus{border-color:var(--green-dim)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ibox{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--green-dim);border-radius:2px;padding:11px 13px;font-size:11px;color:var(--text2);line-height:1.7}
+.sftr{padding:1rem 1.2rem;border-top:1px solid var(--border);flex-shrink:0;background:var(--bg)}
+
+/* MEASURE */
+#sm{background:#000;position:relative;overflow:hidden}
+#vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#gcv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.htop{
+  position:absolute;top:0;left:0;right:0;padding:.8rem 1rem;
+  /* safe area top para notch */
+  padding-top:max(.8rem, env(safe-area-inset-top));
+  background:linear-gradient(to bottom,rgba(13,26,15,.92),transparent);
+  display:flex;align-items:flex-start;justify-content:space-between;z-index:10;
+}
+.hlabel{font-size:10px;letter-spacing:.12em;color:var(--text2)}
+.hsublabel{font-size:9px;color:var(--text3);margin-top:2px;letter-spacing:.08em}
+.hpct{font-size:26px;font-weight:300;color:var(--amber);line-height:1;text-align:right}
+.hcells{font-size:9px;letter-spacing:.1em;color:var(--text3);text-align:right;margin-top:2px}
+.gtip{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-size:12px;letter-spacing:.1em;color:rgba(255,255,255,.5);
+  text-align:center;pointer-events:none;z-index:5;transition:opacity .4s;
+  text-shadow:0 1px 4px rgba(0,0,0,.8);
+}
+.gtip.hi{opacity:0}
+.cerr{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:1rem;padding:2rem;
+  text-align:center;z-index:20;
+}
+.cerr-ico{font-size:3rem}
+.cerr-txt{font-size:13px;color:var(--text2);line-height:1.6}
+.hbot{
+  position:absolute;bottom:0;left:0;right:0;
+  /* safe area inferior para barra de navegación del OS */
+  padding:1rem 1rem max(1rem, env(safe-area-inset-bottom));
+  padding-bottom:max(1.2rem, calc(env(safe-area-inset-bottom) + .8rem));
+  background:linear-gradient(to top,rgba(13,26,15,.98) 60%,transparent);
+  display:flex;gap:10px;z-index:10;align-items:center;
+}
+.breset{font-family:inherit;font-size:11px;background:rgba(255,255,255,.06);color:var(--text2);border:1px solid var(--border);padding:10px 16px;border-radius:2px;cursor:pointer}
+.breset:active{background:var(--surface)}
+.bsave{font-family:inherit;font-size:13px;background:var(--green);color:#0d1a0f;border:none;padding:12px 0;border-radius:2px;cursor:pointer;flex:1;font-weight:600}
+.bsave:active{background:var(--green-hi)}
+.bsave:disabled{background:var(--bg3);color:var(--text3);cursor:default}
+
+/* LOTE */
+#sl{background:var(--bg)}
+.lhdr{padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between}
+.lname{font-size:1.05rem;font-weight:300;color:var(--green-hi);line-height:1.2}
+.lmeta{font-size:10px;color:var(--text3);letter-spacing:.08em;margin-top:3px}
+.lsum{display:flex;border-bottom:1px solid var(--border)}
+.sstat{flex:1;padding:.9rem .4rem;text-align:center;border-right:1px solid var(--border)}
+.sstat:last-child{border-right:none}
+.sval{font-size:1.7rem;font-weight:300;color:var(--amber);line-height:1}
+.slbl{font-size:9px;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;margin-top:3px}
+.rlist{flex:1;overflow-y:auto}
+.ritem{display:flex;align-items:center;padding:11px 1.2rem;border-bottom:1px solid var(--border);gap:.8rem;animation:fi .2s ease}
+@keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.rnum{font-size:10px;color:var(--text3);min-width:26px}
+.rbarw{flex:1;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.rbar{height:100%;background:var(--green);border-radius:2px;transition:width .4s}
+.rpct{font-size:13px;font-weight:600;color:var(--text);min-width:40px;text-align:right}
+.rtime{font-size:10px;color:var(--text3);min-width:44px;text-align:right}
+.rdel{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:4px;line-height:1}
+.rdel:active{color:var(--red)}
+.lftr{padding:.9rem 1.2rem max(1rem,env(safe-area-inset-bottom));border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0}
+.bnew{font-family:inherit;font-size:13px;background:var(--green);color:#0d1a0f;border:none;padding:13px 0;border-radius:2px;cursor:pointer;flex:1;font-weight:600}
+.bnew:active{background:var(--green-hi)}
+.bexp{font-family:inherit;font-size:11px;background:transparent;color:var(--amber);border:1px solid var(--amber-dim);padding:13px 14px;border-radius:2px;cursor:pointer;white-space:nowrap}
+.bexp:active{background:rgba(232,184,75,.1)}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;padding:2rem;opacity:.5}
+.etxt{font-size:12px;color:var(--text3);letter-spacing:.08em;text-align:center;line-height:1.7}
+
+/* ACERCA */
+#sa{background:var(--bg);overflow-y:auto}
+.achdr{padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.8rem}
+.acbody{padding:1.5rem 1.2rem;display:flex;flex-direction:column;gap:1.4rem}
+.ac-section{display:flex;flex-direction:column;gap:.5rem}
+.ac-tag{font-size:9px;letter-spacing:.18em;color:var(--text3);text-transform:uppercase}
+.ac-title{font-size:1.05rem;font-weight:300;color:var(--green-hi);line-height:1.3}
+.ac-author{font-size:12px;color:var(--text2);letter-spacing:.04em}
+.ac-doi{
+  display:inline-block;font-size:11px;color:var(--amber);
+  border:1px solid var(--amber-dim);border-radius:2px;
+  padding:8px 12px;text-decoration:none;letter-spacing:.04em;
+  word-break:break-all;line-height:1.5;
+  transition:background .15s;
+}
+.ac-doi:active{background:rgba(232,184,75,.1)}
+.ac-div{height:1px;background:var(--border)}
+.ac-body-txt{font-size:12px;color:var(--text2);line-height:1.8;letter-spacing:.02em}
+.ac-body-txt b{color:var(--text);font-weight:600}
+.ac-ver{font-size:10px;color:var(--text3);letter-spacing:.1em;margin-top:.5rem}
+
+/* COMITÉ CREATIVO BRAND */
+.cc-dev-label{font-size:9px;letter-spacing:.14em;color:rgba(255,255,255,.35);text-transform:uppercase;margin-bottom:5px}
+.cc-badge{
+  display:inline-flex;align-items:center;
+  background:#fff;border-radius:6px;
+  padding:4px 10px;text-decoration:none;
+  transition:opacity .15s;box-shadow:0 2px 12px rgba(0,0,0,.4);
+}
+.cc-badge:active{opacity:.75}
+.home-footer{
+  width:100%;display:flex;flex-direction:column;
+  align-items:center;gap:5px;
+  padding:.9rem 1.5rem 1.2rem;
+  border-top:1px solid var(--border);
+  flex-shrink:0;
+}
+.ac-cc-block{
+  background:#fff;border:1px solid rgba(0,0,0,.08);
+  border-left:3px solid #F68623;
+  border-radius:2px;padding:14px 14px 12px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.ac-cc-link{
+  font-size:11px;color:#F68623;letter-spacing:.06em;
+  text-decoration:none;
+  border-bottom:1px solid rgba(246,134,35,.3);
+  padding-bottom:1px;display:inline;
+}
+.ac-cc-link:active{color:#c86a10}
+.ac-cc-desc{font-size:12px;color:#555;line-height:1.7;letter-spacing:.01em}
+
+
+
+/* ── MENÚ DE HERRAMIENTAS ── */
+#smenu{background:var(--bg);overflow:hidden}
+.menu-hdr{padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.8rem;flex-shrink:0}
+.menu-body{flex:1;display:flex;flex-direction:column;justify-content:center;padding:1.5rem 1.2rem;gap:1rem}
+.menu-lote-tag{font-size:9px;letter-spacing:.18em;color:var(--text3);text-transform:uppercase;margin-bottom:.3rem}
+.menu-lote-name{font-size:1.1rem;font-weight:300;color:var(--green-hi);margin-bottom:1.8rem;line-height:1.2}
+.menu-card{
+  background:var(--bg3);border:1px solid var(--border);border-radius:6px;
+  padding:1.3rem 1.2rem;cursor:pointer;
+  display:flex;align-items:center;gap:1rem;
+  transition:border-color .15s,background .15s;
+  text-align:left;font-family:inherit;width:100%;
+}
+.menu-card:active{background:var(--surface);border-color:var(--border2)}
+.menu-card.amber{border-left:3px solid var(--amber-dim)}
+.menu-card.amber:active{border-left-color:var(--amber)}
+.menu-card.green{border-left:3px solid var(--green-dim)}
+.menu-card.green:active{border-left-color:var(--green)}
+.menu-card-icon{font-size:2rem;flex-shrink:0;width:44px;text-align:center}
+.menu-card-text{}
+.menu-card-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
+.menu-card.green .menu-card-title{color:var(--green-hi)}
+.menu-card.amber .menu-card-title{color:var(--amber)}
+.menu-card-desc{font-size:11px;color:var(--text2);line-height:1.55}
+.menu-card-badge{
+  font-size:9px;font-weight:600;letter-spacing:.1em;
+  padding:2px 8px;border-radius:2px;margin-top:5px;display:inline-block;
+}
+.menu-card.green .menu-card-badge{background:rgba(95,196,106,.15);color:var(--green)}
+.menu-card.amber .menu-card-badge{background:rgba(232,184,75,.15);color:var(--amber)}
+
+/* ── TEXTURA ── */
+#stx{background:var(--bg);overflow:hidden}
+.tx-hdr{padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.8rem;flex-shrink:0}
+.tx-body{
+  flex:1;overflow-y:auto;
+  padding:1.2rem 1.2rem max(1.4rem,env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;gap:1.1rem;
+  -webkit-overflow-scrolling:touch;
+}
+.tx-progress{height:3px;background:var(--bg3);border-radius:2px;flex-shrink:0}
+.tx-progress-bar{height:100%;background:var(--amber);border-radius:2px;transition:width .4s ease}
+.tx-step-label{font-size:9px;letter-spacing:.18em;color:var(--text3);text-transform:uppercase}
+.tx-question{font-size:1rem;font-weight:300;color:var(--text);line-height:1.5;margin:.3rem 0 .1rem}
+.tx-hint{font-size:11px;color:var(--text2);line-height:1.65;background:var(--bg3);border-left:3px solid var(--border2);padding:10px 12px;border-radius:2px}
+.tx-hint b{color:var(--text);font-weight:600}
+.tx-choices{display:flex;flex-direction:column;gap:10px}
+.tx-choice{
+  font-family:inherit;font-size:13px;text-align:left;
+  background:var(--bg3);color:var(--text);
+  border:1px solid var(--border);border-radius:4px;
+  padding:14px 16px;cursor:pointer;
+  display:flex;align-items:center;gap:12px;
+  transition:border-color .15s,background .15s;
+  line-height:1.4;
+}
+.tx-choice:active{background:var(--surface);border-color:var(--border2)}
+.tx-choice-icon{font-size:18px;flex-shrink:0;width:24px;text-align:center}
+.tx-choice.yes{border-left:3px solid var(--green-dim)}
+.tx-choice.yes:active{border-left-color:var(--green)}
+.tx-choice.no{border-left:3px solid var(--red)}
+
+/* resultado */
+.tx-result{
+  display:flex;flex-direction:column;align-items:center;
+  gap:.7rem;padding:.6rem 0 .3rem;text-align:center;
+}
+.tx-result-icon{font-size:2.8rem;line-height:1}
+.tx-result-class{
+  font-family:ui-sans-serif,system-ui,sans-serif;
+  font-size:1.5rem;font-weight:600;color:var(--amber);
+  letter-spacing:-.01em;line-height:1.1;
+}
+.tx-result-class-en{
+  font-family:ui-sans-serif,system-ui,sans-serif;
+  font-size:.8rem;font-weight:400;color:var(--text3);
+  letter-spacing:.06em;margin-top:.1rem;
+}
+.tx-result-desc{font-size:12px;color:var(--text2);line-height:1.75;max-width:300px}
+.tx-result-props{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;
+}
+.tx-prop{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:3px;padding:10px 12px;
+}
+.tx-prop-label{font-size:9px;letter-spacing:.14em;color:var(--text3);text-transform:uppercase;margin-bottom:3px}
+.tx-prop-val{font-size:13px;color:var(--text);font-weight:600}
+.tx-history{
+  border-top:1px solid var(--border);padding-top:.9rem;
+  display:flex;flex-direction:column;gap:7px;
+}
+.tx-hist-item{
+  font-size:11px;color:var(--text3);
+  display:flex;justify-content:space-between;
+  align-items:flex-start;gap:8px;
+}
+.tx-hist-q{flex:1;line-height:1.45}
+.tx-hist-a{color:var(--text2);font-weight:600;text-align:right;flex-shrink:0;max-width:48%;line-height:1.45}
+.tx-hist-a.s{color:var(--green)}
+.tx-hist-a.n{color:var(--red)}
+.tx-action-row{
+  display:flex;gap:10px;padding-top:.2rem;
+}
+.tx-btn-sec{
+  font-family:inherit;font-size:12px;font-weight:600;
+  background:var(--bg3);color:var(--text2);
+  border:1px solid var(--border);
+  padding:13px 16px;border-radius:2px;cursor:pointer;
+  white-space:nowrap;flex-shrink:0;
+}
+.tx-btn-sec:active{background:var(--surface)}
+.tx-btn-pri{
+  font-family:inherit;font-size:13px;font-weight:600;
+  background:var(--green);color:#0d1a0f;border:none;
+  padding:13px 0;border-radius:2px;cursor:pointer;
+  flex:1;
+}
+.tx-btn-pri:active{background:var(--green-hi)}
+
+/* ── TUTORIAL ── */
+#tutorial{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(10,20,12,.97);
+  display:flex;flex-direction:column;
+  align-items:stretch;
+  height:calc(var(--vh,1vh)*100);
+}
+#tutorial.hidden{display:none}
+.tut-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.9rem 1.2rem;flex-shrink:0;
+}
+.tut-title{font-size:10px;letter-spacing:.18em;color:var(--text3);text-transform:uppercase}
+.tut-skip{background:none;border:none;color:var(--text3);font-family:inherit;font-size:11px;letter-spacing:.08em;cursor:pointer;padding:4px 8px}
+.tut-skip:active{color:var(--text2)}
+.tut-slides{
+  flex:1;overflow:hidden;position:relative;min-height:0;
+}
+.tut-slide{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:1.5rem 2rem;
+  opacity:0;transform:translateX(40px);
+  transition:opacity .3s ease,transform .3s ease;
+  pointer-events:none;
+}
+.tut-slide.active{
+  opacity:1;transform:translateX(0);pointer-events:auto;
+}
+.tut-slide.exit{
+  opacity:0;transform:translateX(-40px);
+}
+.tut-illo{
+  width:min(220px,70vw);height:min(180px,40vh);
+  margin-bottom:1.8rem;flex-shrink:0;
+}
+.tut-step-label{
+  font-size:9px;letter-spacing:.2em;color:var(--text3);
+  text-transform:uppercase;margin-bottom:.6rem;
+}
+.tut-heading{
+  font-size:clamp(1.1rem,5vw,1.4rem);font-weight:300;
+  color:var(--green-hi);text-align:center;line-height:1.25;
+  margin-bottom:.9rem;letter-spacing:-.01em;
+}
+.tut-body{
+  font-size:12px;color:var(--text2);text-align:center;
+  line-height:1.75;letter-spacing:.02em;max-width:300px;
+}
+.tut-body b{color:var(--text);font-weight:600}
+.tut-footer{
+  flex-shrink:0;padding:1rem 1.5rem max(1.2rem,env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;align-items:center;gap:.9rem;
+}
+.tut-dots{display:flex;gap:6px;align-items:center}
+.tut-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--text3);transition:background .25s,width .25s;
+  cursor:pointer;
+}
+.tut-dot.active{background:var(--green);width:18px;border-radius:3px}
+.tut-btn-row{display:flex;gap:10px;width:100%}
+.tut-prev{
+  font-family:inherit;font-size:12px;background:transparent;
+  color:var(--text2);border:1px solid var(--border2);
+  padding:12px 20px;border-radius:2px;cursor:pointer;
+  transition:background .15s;white-space:nowrap;
+}
+.tut-prev:active{background:var(--surface)}
+.tut-next{
+  font-family:inherit;font-size:13px;font-weight:600;
+  background:var(--green);color:#0d1a0f;border:none;
+  padding:13px 0;border-radius:2px;cursor:pointer;
+  flex:1;transition:background .15s;
+}
+.tut-next:active{background:var(--green-hi)}
+
+/* TOAST */
+
+/* ── TUTORIAL TEXTURA ── */
+#tx-tutorial{
+  position:fixed;inset:0;z-index:300;
+  background:rgba(10,20,12,.97);
+  display:flex;flex-direction:column;
+  align-items:stretch;
+  height:calc(var(--vh,1vh)*100);
+}
+#tx-tutorial.hidden{display:none}
+
+#toast{
+  position:fixed;bottom:5.5rem;left:50%;
+  transform:translateX(-50%) translateY(12px);
+  background:var(--surface);border:1px solid var(--border2);
+  color:var(--green-hi);font-size:12px;letter-spacing:.08em;
+  padding:9px 18px;border-radius:2px;z-index:100;
+  opacity:0;transition:opacity .25s,transform .25s;
+  pointer-events:none;white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="sh" class="screen active">
+  <div class="home-main">
+    <svg width="56" height="56" viewBox="0 0 64 64" fill="none" style="margin-bottom:1.5rem;opacity:.9" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="60" height="60" rx="4" stroke="#5fc46a" stroke-width="1.5"/>
+      <line x1="2" y1="15.5" x2="62" y2="15.5" stroke="#5fc46a" stroke-width=".6" opacity=".4"/>
+      <line x1="2" y1="28.5" x2="62" y2="28.5" stroke="#5fc46a" stroke-width=".6" opacity=".4"/>
+      <line x1="2" y1="41.5" x2="62" y2="41.5" stroke="#5fc46a" stroke-width=".6" opacity=".4"/>
+      <line x1="2" y1="54.5" x2="62" y2="54.5" stroke="#5fc46a" stroke-width=".6" opacity=".4"/>
+      <line x1="15.5" y1="2" x2="15.5" y2="62" stroke="#5fc46a" stroke-width=".6" opacity=".4"/>
+      <line x1="28.5" y1="2" x2="28.5" y2="62" stroke="#5fc46a" stroke-width=".6" opacity=".4"/>
+      <line x1="41.5" y1="2" x2="41.5" y2="62" stroke="#5fc46a" stroke-width=".6" opacity=".4"/>
+      <line x1="54.5" y1="2" x2="54.5" y2="62" stroke="#5fc46a" stroke-width=".6" opacity=".4"/>
+      <rect x="29" y="16" width="9" height="9" fill="#5fc46a" opacity=".8" rx="1"/>
+      <rect x="16" y="29" width="9" height="9" fill="#5fc46a" opacity=".5" rx="1"/>
+      <rect x="42" y="29" width="9" height="9" fill="#5fc46a" opacity=".4" rx="1"/>
+      <rect x="29" y="42" width="9" height="9" fill="#5fc46a" opacity=".7" rx="1"/>
+    </svg>
+    <div class="hbadge">Diagnóstico agrícola</div>
+    <div class="htitle">Herramientas<br>para el Campo</div>
+    <div class="hsub">Cobertura de dosel · Textura de suelo</div>
+    <button class="bp" onclick="goSetup()">Nuevo lote</button>
+    <button class="bg" id="bvl" style="display:none" onclick="goMenu()">Continuar lote actual</button>
+    <div style="display:flex;gap:1.4rem;margin-top:1.4rem;position:relative">
+      <button onclick="goTutorial()" style="background:none;border:none;color:var(--green-dim);font-family:inherit;font-size:10px;letter-spacing:.12em;cursor:pointer;text-decoration:underline;text-underline-offset:3px">Cómo usar</button>
+      <button onclick="goAcerca()" style="background:none;border:none;color:var(--text3);font-family:inherit;font-size:10px;letter-spacing:.12em;cursor:pointer;text-decoration:underline;text-underline-offset:3px">Acerca de</button>
+    </div>
+  </div>
+  <div class="home-footer">
+    <div class="cc-dev-label">Desarrollado por</div>
+    <a class="cc-badge" href="https://comitecreativo.com/" target="_blank" rel="noopener">
+      <img src="data:image/webp;base64,UklGRhgOAABXRUJQVlA4IAwOAAAwRgCdASpAAYQAPlEmkEYjoiGhIrVaIHAKCWVu4XNA9EBJwTrP8e/JOUF9AP43+M+gD1AeYB+k/6zepn6gPMB+zf6zdgD9cP1A+AD+R/0rrAPQA/ZT0uf16+Cf9pP2O9o/VXvGP9m/DnwV/tP49+gPg68ae1X9b5ffSPmT/Gfsr9x/LH8pfjn/TeBPxV/lPUC/Hv5V/efyq/J/jVwBflP8v/0/5s/3L0Mf4D0P+rnsAfyr+g/4TyovBM8d9gL+Tf1b/n/4f+5/DH/Q/9/9hf2g9sv0b/2P9B8Bn8o/pv+z/uX+U/9n+a+dL2A/t77I37H//8ZDW4bJzFKUpSlKUpSlKRupnqMRERERERERERW/MzMykT36g/5k5WwVSYd7In5JhmZmZ9EDNmxvaSdcKniUW5pmlXNE/uEOEulx9qPOenUdwqlbvjz+sgvhzlgaPJGxs1IgrhCUKbtC/oGKhBzGKsTDx7cXPksVyWbtX1lahSNqRoODvngsIfcaR24+r6RfTyfahhvmuLubJTdbhDyJD8M5fKyKyUMprvnIDRiw6v28JjN17Wb3kqqq4GXrt4p/l5g24SwcNKWa2PmYPnwqZnHf0GuqHS4kGoS4W1ukxSjIlV55eJPH2cronllGrePKwJzHDuv7Eqfe9VTN1cgYtxHy76RnIh6UwQf5voFqqqTMo6DaACPoQmhmLXNVW4wjkLpXmyke55hp5/dMRmZ/dkREREREVjIiJazGHVZBAAAAAAAAAAAAALIA/q7C5AUJSYAA/S6wh/CEBaB779cH4gWY8mr4Laer+4pBQs0VYQFKtD//xdCS3OXkU/gtrf/8FXal8AbomN/c+ASQ32thkKpFjfc1Khwa8Fb2m0hLznY0+xNDp1KQWHcP2HgrEf186hLjdHagPbD4g8rNedahvp3+bzNVNuPqbPzjhBn8MYvcyvuhXP2OXuXE3x9k6YIZATTMFqrXls+KUslEcr90vFaY3Sldef7+DKWrQ4SZ/2PMEfRIUcbzXP77XHhu6CbhEkXUXF77HXaI8d0W5sNyKpreXzV8iPllfLej7jnYvef/4e7I/vZ5Z/10eMwSyxzP88Ql7/wQyXsNyeXTmPkPGaCirPHD+BJbsSbeeXZlTrci6PZ1nojS7u5WAGOnCq6EtxH7h8ZDhB/rfo1lAbkH6ZMJ/pyDZTSSqSotnVSG98mxma28+3rEdOS/4waxfOi457r+/4oKKeNDKUC2b81ppE5etKVep+ScBQwQo8YFXeldUZpHfgX1p4CnJiizV8pnarQwklUw9G0iUDBb+zeXKFaKtYJNaxje3/PSr9J9QETrKdA/d5d+P/uNXHufTS1ByYLQti4er+uNT8YQorASuC1VHCLTn/7gP7+UA/9tbAntsm2YJ48tNcylzCnG+sAsE1yKp54Zb74hnPXGuLoPk3vuzAWdf7/JO6CodpwU2Creoz8FOojyd6LV8qU6rVjlJFvL3+85F72CSaQZlHkV9H6B5+zqKlUzmCpbsr6KzfA7nI27yreYBcnRpIhpmeFjbryKLKFapbcRcoGXPhvmIBzJLRrYj3YDdqrccwySU7m31YE5vQfO8oMeWQrs/39R3vYtXuu5S81cnx3ZtVjRaG4QVI41pMfLH9ybV5QUzeh94A3U20khmTUkBymUGmWsg0UDdL0uPrmTksxkaKjL40ywPqOzTczBi+uoFJCKozv6M53H6oq0gpi/DKqtrE3fb9DzOnGEnDt0qh1oP6eg+fKAXW23yqeofwJ28Y3CBfYh0awrHMeNKzzIVPT3UVi7Lqciaykx1PXMO1/EkXTt70o0bz2r6TebmHYToc7lLLlWPH+tWq1KIC5UfGR8FgtHunWH7MC9rC3+l35GXk3qskaGGAGB4mTqZkqytaPboqQlw8YNax2pO805lM8/f2tJEsKklAdUQyx95xyDDbJ1hWnBsdFVBtlNy353f2pYz+a/7hnodKI7kIrAjg3DOkNbdFsQaibka/PQbgAY3xmh/Oc6QdVp50gKB3uLIdQd/x8KS/zHvgzUkY5I/Z2zQXEArkFkn791ToKjcivbJ/f/g+cDiqCp6hqFMO8YkQ03+VA+Hbma/QXAB97gmY8m02xx3Scz2aQeylf50ia9/UbP74RBSGFFvnZ48g7pKy40vmboddQzG9bvFx521Uryb4txTOa6YTP0ImnV9t2rG/wU5TZ6/PUa8ANHibp/0lZlbTnPtv/VDEskXq+mzMRKb4ydSocGFUq5cVaP0lJtwrHZ6NJdc3MD5rsyEVmjFFSi3AaKY4AF1mIb7eXvjqa+uNCMR/m3o3QT5K+pjZM3Sx/PtHRmyWGYMm1ZPQOEKe0NdRrwfMz96lJNZOtz3TYh//LqtOuXcUujkIA5TpOPyCjQo9rxxhs6AeqB2oXK/lwI/mh7+4A3dQ+P/l1aaO8zlS3PI5u0Y+wiQSEKSI/Kr5lSlwiC1t2I4xxHBGWLkliftx1C5sGCXRO7cIk2O19XeSejVJA2uePLlZLClYA+CMxmENDRf6Ws5d6tsdlu9Ddv1j8V8LK2GgWl0eMjiAB72QWIQX9lY1Ti9OShCnHLRvsqT5Bwd7UyTE7acN9N15IgtDbxcLi/yKHi3xzXTP4CJs5vCnOlvodhq1583En4qPXs30N98SHf/FiFrxfpfZa20s/r0ul7KvaO4isvIAWVxqrRbEZAtMPNxEA6SeiOQ9WF0ZaIkaLaQVB9bVdsfJuSYOpmPmkKU4UDFRqnHAbkjjvYaJL1e4xBGbJoArRkFjuqR+DNtdfTe4OOiuuoFJ3KtrNldZ221s1WpKR91qKy3lH24wEqekkLayDP3UmwUhFFw1hcP5DvgoGD37Vv8T6byam0W76LUr8Su1Y/dWqE+qictkfz6OVEsvRw7dVY9NvG0t180n0JGFm+RKWeVzScr8PMrOvEpeGDgHNUHPrY54iatQCBD12oR4nll7ZGnVd1mXg+pxxLSEv7Ok1e/Ber10r0vDWI7F8oteLrszc9GEfqyUKpGsBErVL9NJSZ1ugdBWFLtt8Pi4IAAoe3vNadlu7/owv1KuhR6+w2IgCbdRUqnSRPXwwcLca+tEPuwZiBLKsWVGJL623zpGgWYn/xDw2hHcMy3o/LW76SXJDsdfA9tAD6G4k5kF+HIJv/pX+wTNx+wAYxx3vlx4Z0tiAIvoftS2i3JnwADdwWg9unQysFEyLN+/f/qrmF9RviZjOFDTARTzyvOUEAbfCunwyCM139dLXiq6k7SQ0lWafUjr6OwlwVeLK44ZqQfDTwc3aqd1iH40c/cweLkniX0UnZdBRnZ6gCfGSP2YDghOqqu0ZR1VuVk4GzbQCF7fDVFZBDY1iXMbpzkC1Cqj68IlW7X0+F66PSjbKvcXpl8eGumK6EDwpb1wsWao68BC6RG8IzUAJ3LUciu+MMK/hnm0b/nfyV8CAbqksC5b1WOSbnUTMj1UAn0hd5SN6lujlAJO8SpejzjNH1RQ0oBXGufysGyDoLQD4LNhDWGOsbdgdBx4e24Sveb2v64gpma3bGJufcaa4l4zvzl8aiuVt7bASg/6YgkRJxZMf/SP9gAw8i5+6bBa6/S992/7Yl3gVHhllzFARooM/Y8ByD+zPNDOto+rLc+p/o6q427PGTUvexELqfZD2CDmFKDrA+J6H4Ms6J+dZXwDKLuywiscHXEeRRzCZX0ZCDnqb2nNL8AnAc7u3AcQZCvdUBf9cG/B19tA3MRAhjwssuswoXHdjAH0VLECLw/xN+n1Wz33qkU8jZu9C4+4cTRGnsahSAcUJ6imYzbPA1PBhzI2VCG/XS56JgZaAy/FlmARjUj4apInj1o2WoH+UlfmZ8aFhnJYAj3peMtoyvY9TqyulYNUiCptdCebsRVGkjTAdEucN1VVZ5fp6/agYGTNFnuqMhRM7Q71PzEV3TP1YLUzEZKmXeJLs9tK/c2EP6vf2zMSyb4ijIitlYbd01Wgk+Irp/Knznwp3NuxaiuaylLq5JrP17HKi1hHwX3Vj5Fb9iqLgMrJ0TfCz3Mo0of2NrMneHb5po4kyg3nUgpgdMb4crUQunZN8XBJGVhCG2dCULhobddFjIp9niA/Dk4vdDgf801dlRrKylUkTM42e0sS5u+e0gUGqvSOdvhYSfdf8YFeOrUbzEL5/69ERzBRdKUMFFPhST+PASObX/WU+QdV5ughpHozE14EDodm1mC6XnKJL+jRtjDrdk7Cm8oWg3PDoAPjw2XMHRe5ZtgPzxb5oVpBNdC0HBiakvqqTjqDYOExJnwEArRKJxLIaquT+Faxj9wWdpzrGYCr3OCAqe4knAZ4mBXnw/cIpK9oOZ6NGdhn0sHdtnOwa2l/k60D1r4LUv9/dcD4ztRhPn0OvhbJF/N/64RGHOQsqhxk5hFYgdnFp8tr+qNBYmqJRnW5yFQ5yTFfNr9SNGIILC6JnL+yU8j+Pn0HLCnexdPtrlb59Uqf4/BPNc+QXWueMIndWDoWmpQtVci8MHywvcOcD+gm/3U2XvSbTbzgCPXSc4pOlfbbnvt0M34N4CRdKKvYuXCMp3FcVnma9sECSCynvreazqMkpKerbrkiSrYvrKcAAOtpwWTd18pfYfMgyXAI6SGKvFFmXTvcno+Z5q3y4Q3Ovu08/G3C8W/UnLBraPm+Z1ekCHbSRcpEU1G1s1L9SxUrtMc2uCGJBb9+DOkzVFTgTrxhysTz1gQV/Id93sZnn4AAAJi5Ufa79oN0X9RunFER0PitthfOfM7+sR7ofFbbC+c+Z39Yj3Q+K22F85861GOnigAA==" alt="Comité Creativo — Ver para crear" width="200" height="83" style="display:block">
+    </a>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div id="ss" class="screen">
+  <div class="shdr">
+    <button class="bbk" onclick="goHome()">←</button>
+    <div class="stitle">Configurar lote</div>
+  </div>
+  <div class="sbody">
+    <div><div class="flabel">Nombre de la finca</div>
+      <input class="finput" id="ifinca" type="text" placeholder="Ej: La Esmeralda" autocomplete="off" enterkeyhint="next"></div>
+    <div><div class="flabel">Lote / parcela</div>
+      <input class="finput" id="ilote" type="text" placeholder="Ej: Lote 3 — Guamo" autocomplete="off" enterkeyhint="next"></div>
+    <div class="frow">
+      <div><div class="flabel">Responsable</div>
+        <input class="finput" id="iresp" type="text" placeholder="Nombre" enterkeyhint="next"></div>
+      <div><div class="flabel">Fecha</div>
+        <input class="finput" id="ifecha" type="date"></div>
+    </div>
+    <div><div class="flabel">Observaciones (opcional)</div>
+      <input class="finput" id="iobs" type="text" placeholder="Época, variedad, clima…" enterkeyhint="done"></div>
+    <div class="ibox">Registra los datos del lote. A continuación podrás tomar lecturas de <b>porcentaje de sombra</b> y/o analizar la <b>textura del suelo</b>.</div>
+  </div>
+  <div class="sftr"><button class="bp" style="width:100%" onclick="startLote()">Continuar →</button></div>
+</div>
+
+
+<!-- MENÚ HERRAMIENTAS -->
+<div id="smenu" class="screen">
+  <div class="menu-hdr">
+    <button class="bbk" onclick="goSetup()">←</button>
+    <div class="stitle">Seleccionar herramienta</div>
+  </div>
+  <div class="menu-body">
+    <div>
+      <div class="menu-lote-tag">Lote activo</div>
+      <div class="menu-lote-name" id="menu-lote-name">—</div>
+    </div>
+    <button class="menu-card green" onclick="goMeasure()">
+      <div class="menu-card-icon">🌿</div>
+      <div class="menu-card-text">
+        <div class="menu-card-title">Porcentaje de sombra</div>
+        <div class="menu-card-desc">Estima la cobertura del dosel usando la grilla de 100 celdas sobre la cámara.</div>
+        <div class="menu-card-badge" id="menu-badge-sombra">Sin lecturas</div>
+      </div>
+    </button>
+    <button class="menu-card amber" onclick="startTextura()">
+      <div class="menu-card-icon">🪨</div>
+      <div class="menu-card-text">
+        <div class="menu-card-title">Textura del suelo</div>
+        <div class="menu-card-desc">Determina la clase textural al tacto usando el método de Thien (1979).</div>
+        <div class="menu-card-badge" id="menu-badge-textura">Sin análisis</div>
+      </div>
+    </button>
+    <button class="menu-card" style="border-left:none;justify-content:center;padding:.9rem" onclick="goLote()">
+      <div style="font-size:12px;color:var(--text2)">Ver resumen del lote →</div>
+    </button>
+  </div>
+</div>
+
+<!-- MEASURE -->
+<div id="sm" class="screen">
+  <video id="vid" autoplay playsinline muted></video>
+  <canvas id="gcv"></canvas>
+  <div class="gtip" id="gtip">Toque las celdas con follaje</div>
+  <div class="cerr" id="cerr" style="display:none">
+    <div class="cerr-ico">📷</div>
+    <div class="cerr-txt">No se pudo acceder a la cámara.<br>Verifique los permisos del navegador.</div>
+    <button class="bg" onclick="goLote()">Continuar sin cámara</button>
+  </div>
+  <div class="htop">
+    <div>
+      <div class="hlabel" id="hpid">Punto —</div>
+      <div class="hsublabel" id="hlid"></div>
+    </div>
+    <div>
+      <div class="hpct" id="hpct">0%</div>
+      <div class="hcells"><span id="hcnt">0</span> / 100 celdas</div>
+    </div>
+  </div>
+  <div class="hbot">
+    <button class="breset" onclick="resetGrid()">Limpiar</button>
+    <button class="bsave" onclick="saveReading()">Guardar lectura</button>
+  </div>
+</div>
+
+<!-- LOTE -->
+<div id="sl" class="screen">
+  <div class="lhdr">
+    <div>
+      <div class="lname" id="lnam">—</div>
+      <div class="lmeta" id="lmet">—</div>
+    </div>
+    <button class="bg" style="padding:7px 12px;font-size:11px;margin-top:0" onclick="goHome()">Inicio</button>
+  </div>
+  <!-- Resumen por herramienta -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)">
+    <!-- Sombra -->
+    <div style="padding:.9rem 1rem;border-right:1px solid var(--border)">
+      <div style="font-size:9px;letter-spacing:.14em;color:var(--text3);text-transform:uppercase;margin-bottom:.4rem">🌿 Sombra</div>
+      <div style="font-size:1.6rem;font-weight:300;color:var(--green-hi);line-height:1" id="slec-val">0</div>
+      <div style="font-size:9px;color:var(--text3);margin-top:2px">lecturas</div>
+      <div style="font-size:1rem;font-weight:300;color:var(--amber);margin-top:.4rem;line-height:1" id="spro-val">—</div>
+      <div style="font-size:9px;color:var(--text3);margin-top:2px" id="sniv-val">promedio</div>
+    </div>
+    <!-- Textura -->
+    <div style="padding:.9rem 1rem">
+      <div style="font-size:9px;letter-spacing:.14em;color:var(--text3);text-transform:uppercase;margin-bottom:.4rem">🪨 Textura</div>
+      <div style="font-size:1rem;font-weight:600;line-height:1.2;font-family:ui-sans-serif,system-ui,sans-serif" id="lote-tx-nombre">—</div>
+      <div style="font-size:9px;color:var(--text3);margin-top:.4rem;line-height:1.5" id="lote-tx-ranges"></div>
+    </div>
+  </div>
+  <div class="rlist" id="rlist"></div>
+  <div class="lftr">
+    <button class="bnew" onclick="goMenu()">+ Nueva medición</button>
+    <button class="bexp" onclick="exportTxt()">Exportar TXT</button>
+  </div>
+</div>
+
+<!-- ACERCA -->
+<div id="sa" class="screen">
+  <div class="achdr">
+    <button class="bbk" onclick="goHome()">←</button>
+    <div class="stitle">Acerca de</div>
+  </div>
+  <div class="acbody">
+
+    <div class="ac-section">
+      <div class="ac-tag">Basada en</div>
+      <div class="ac-title">Instrumentos para estimar el porcentaje de sombra en el cafetal</div>
+      <div class="ac-author">Fernando Farfán-Valencia</div>
+      <a class="ac-doi" href="https://doi.org/10.38141/10781/039" target="_blank" rel="noopener">
+        doi.org/10.38141/10781/039 ↗
+      </a>
+    </div>
+
+    <div class="ac-div"></div>
+
+    <div class="ac-section">
+      <div class="ac-tag">También basada en</div>
+      <div class="ac-title">A flow diagram for teaching texture by feel analysis</div>
+      <div class="ac-author">S.J. Thien · 1979</div>
+      <div class="ac-body-txt" style="margin-top:.4rem">Journal of Agronomic Education, 8:54–55.</div>
+    </div>
+
+    <div class="ac-div"></div>
+
+    <div class="ac-section">
+      <div class="ac-tag">Metodología</div>
+      <div class="ac-body-txt">
+        El <b>Densiómetro Cúbico (DC)</b> es un instrumento de construcción artesanal descrito en la publicación de referencia. Permite estimar el porcentaje de cobertura que proporcionan los árboles de sombra proyectando una grilla de <b>100 cuadrantes</b> sobre el dosel.<br><br>
+        El porcentaje de cobertura en cada punto equivale directamente al número de celdas ocupadas por follaje. Para estimar el <b>porcentaje de sombra general</b> del lote se calcula el promedio de todas las lecturas del recorrido por el lote, según el protocolo de la publicación de referencia.<br><br>
+        La <b>textura del suelo al tacto</b> sigue el diagrama de flujo de Thien (1979), adaptado para diagnóstico de campo sin laboratorio. Determina la clase textural evaluando la formación de bola, longitud de la cinta y sensación al frotar.
+      </div>
+    </div>
+
+    <div class="ac-div"></div>
+
+    <div class="ac-section">
+      <div class="ac-tag">Niveles de referencia</div>
+      <div class="ac-body-txt">
+        <b>Bajo</b> — cobertura menor al 25%<br>
+        <b>Medio</b> — cobertura entre 25% y 49%<br>
+        <b>Alto</b> — cobertura igual o superior al 50%
+      </div>
+    </div>
+
+    <div class="ac-div"></div>
+
+    <div class="ac-section">
+      <div class="ac-tag">Implementación digital</div>
+      <div class="ac-body-txt">
+        Aplicación web progresiva (PWA). Funciona sin conexión a internet. Los datos se almacenan localmente en el dispositivo y pueden exportarse como archivo de texto plano (.txt).
+      </div>
+      <div class="ac-ver">v1.0 · Archivo HTML único · Sin dependencias externas</div>
+    </div>
+
+    <div class="ac-div"></div>
+
+    <div class="ac-section">
+      <div class="ac-tag">Desarrollado por</div>
+      <div class="ac-cc-block">
+        <img src="data:image/webp;base64,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" alt="Comité Creativo — Ver para crear" style="width:100%;max-width:260px;display:block;align-self:center;border-radius:3px">
+        <div class="ac-cc-desc">
+          Consultora de tecnología para impacto social. Soluciones digitales para ONGs y PYMEs en América Latina, con enfoque en agricultura, trazabilidad y transformación digital rural.
+        </div>
+        <div>
+          <a class="ac-cc-link" href="https://comitecreativo.com/" target="_blank" rel="noopener">
+            comitecreativo.com ↗
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TEXTURA -->
+<div id="stx" class="screen">
+  <div class="tx-hdr">
+    <button class="bbk" onclick="goLote()">←</button>
+    <div style="flex:1;min-width:0">
+      <div class="stitle">Textura del suelo</div>
+      <div id="tx-lote-meta" style="font-size:9px;color:var(--text3);letter-spacing:.08em;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+    </div>
+    <button onclick="openTxTutorial()" style="background:none;border:none;color:var(--text3);font-family:inherit;font-size:10px;letter-spacing:.1em;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:4px 0;white-space:nowrap">Cómo hacerlo</button>
+  </div>
+  <div class="tx-progress"><div class="tx-progress-bar" id="tx-pbar" style="width:0%"></div></div>
+  <div class="tx-body" id="tx-body"></div>
+</div>
+
+<!-- ══ TUTORIAL ══ -->
+<div id="tutorial" class="hidden">
+
+  <div class="tut-header">
+    <span class="tut-title">Tutorial de uso</span>
+    <button class="tut-skip" onclick="closeTutorial()">Saltar</button>
+  </div>
+
+  <div class="tut-slides">
+
+    <!-- PASO 1: Bienvenida -->
+    <div class="tut-slide active" data-step="0">
+      <svg class="tut-illo" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+        <!-- ícono sombra izq -->
+        <rect x="18" y="30" width="80" height="80" rx="6" fill="none" stroke="#3a7a42" stroke-width="1.2"/>
+        <line x1="18" y1="50" x2="98" y2="50" stroke="#3a7a42" stroke-width=".6" opacity=".5"/>
+        <line x1="18" y1="70" x2="98" y2="70" stroke="#3a7a42" stroke-width=".6" opacity=".5"/>
+        <line x1="18" y1="90" x2="98" y2="90" stroke="#3a7a42" stroke-width=".6" opacity=".5"/>
+        <line x1="38" y1="30" x2="38" y2="110" stroke="#3a7a42" stroke-width=".6" opacity=".5"/>
+        <line x1="58" y1="30" x2="58" y2="110" stroke="#3a7a42" stroke-width=".6" opacity=".5"/>
+        <line x1="78" y1="30" x2="78" y2="110" stroke="#3a7a42" stroke-width=".6" opacity=".5"/>
+        <rect x="38" y="50" width="20" height="20" fill="#5fc46a" opacity=".7" rx="1"/>
+        <rect x="58" y="30" width="20" height="20" fill="#5fc46a" opacity=".5" rx="1"/>
+        <text x="58" y="128" text-anchor="middle" font-family="monospace" font-size="10" fill="#e8b84b">🌿 Sombra</text>
+        <!-- ícono textura der -->
+        <ellipse cx="162" cy="65" rx="40" ry="22" fill="#5c3d1e" opacity=".7"/>
+        <ellipse cx="162" cy="58" rx="34" ry="16" fill="#7a5230" opacity=".85"/>
+        <circle cx="150" cy="54" r="3" fill="#e8b84b" opacity=".7"/>
+        <circle cx="164" cy="50" r="4" fill="#c8942a" opacity=".6"/>
+        <circle cx="176" cy="55" r="3" fill="#e8b84b" opacity=".7"/>
+        <text x="162" y="128" text-anchor="middle" font-family="monospace" font-size="10" fill="#e8b84b">🪨 Textura</text>
+        <!-- flecha entre -->
+        <text x="110" y="75" text-anchor="middle" font-size="20" fill="#567050">+</text>
+        <text x="110" y="155" text-anchor="middle" font-family="monospace" font-size="11" fill="#5fc46a">Herramientas para el Campo</text>
+      </svg>
+      <div class="tut-step-label">Paso 1 de 8</div>
+      <div class="tut-heading">Bienvenido a<br>Herramientas para el Campo</div>
+      <div class="tut-body">
+        Esta app incluye dos instrumentos de diagnóstico: <b>porcentaje de sombra</b> con grilla sobre la cámara, y <b>textura del suelo</b> al tacto. Ambos georreferenciados y exportables.
+      </div>
+    </div>
+
+    <!-- PASO 2: Configurar lote -->
+    <div class="tut-slide" data-step="1">
+      <svg class="tut-illo" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+        <rect x="30" y="15" width="160" height="150" rx="6" fill="#1c2e1f" stroke="#3a7a42" stroke-width="1"/>
+        <text x="50" y="38" font-family="monospace" font-size="7" fill="#567050" letter-spacing="2">FINCA</text>
+        <rect x="42" y="44" width="136" height="18" rx="2" fill="#142018" stroke="#3a7a42" stroke-width=".8"/>
+        <text x="50" y="57" font-family="monospace" font-size="9" fill="#8aaa80">La Esmeralda</text>
+        <text x="50" y="76" font-family="monospace" font-size="7" fill="#567050" letter-spacing="2">LOTE</text>
+        <rect x="42" y="82" width="136" height="18" rx="2" fill="#142018" stroke="#3a7a42" stroke-width=".8"/>
+        <text x="50" y="95" font-family="monospace" font-size="9" fill="#8aaa80">Lote 3 — Guamo</text>
+        <text x="50" y="114" font-family="monospace" font-size="7" fill="#567050" letter-spacing="2">FECHA</text>
+        <rect x="42" y="120" width="60" height="16" rx="2" fill="#142018" stroke="#3a7a42" stroke-width=".8"/>
+        <text x="48" y="132" font-family="monospace" font-size="8" fill="#8aaa80">30/03/2026</text>
+        <rect x="42" y="148" width="136" height="10" rx="2" fill="#5fc46a"/>
+        <text x="110" y="156" text-anchor="middle" font-family="monospace" font-size="7" fill="#0d1a0f" font-weight="700">CONTINUAR →</text>
+      </svg>
+      <div class="tut-step-label">Paso 2 de 8</div>
+      <div class="tut-heading">Configura tu lote</div>
+      <div class="tut-body">
+        Primero ingresa el <b>nombre de la finca</b>, el <b>lote</b>, responsable y fecha. Luego eliges qué herramienta usar. Puedes mezclar lecturas de sombra y muestras de textura en el mismo lote.
+      </div>
+    </div>
+
+    <!-- PASO 3: Menú de herramientas -->
+    <div class="tut-slide" data-step="2">
+      <svg class="tut-illo" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+        <rect x="20" y="20" width="180" height="60" rx="6" fill="#1c2e1f" stroke="#3a7a42" stroke-width="1"/>
+        <rect x="28" y="28" width="8" height="44" rx="2" fill="#5fc46a" opacity=".8"/>
+        <text x="46" y="47" font-family="monospace" font-size="9" fill="#7edb8a">🌿 Porcentaje de sombra</text>
+        <text x="46" y="62" font-family="monospace" font-size="7" fill="#567050">Grilla de 100 celdas · cámara</text>
+        <rect x="20" y="95" width="180" height="60" rx="6" fill="#1c2e1f" stroke="#e8b84b" stroke-width="1" opacity=".8"/>
+        <rect x="28" y="103" width="8" height="44" rx="2" fill="#e8b84b" opacity=".8"/>
+        <text x="46" y="122" font-family="monospace" font-size="9" fill="#e8b84b">🪨 Textura del suelo</text>
+        <text x="46" y="137" font-family="monospace" font-size="7" fill="#567050">Análisis al tacto · Thien 1979</text>
+      </svg>
+      <div class="tut-step-label">Paso 3 de 8</div>
+      <div class="tut-heading">Elige la herramienta</div>
+      <div class="tut-body">
+        Desde el menú del lote selecciona qué quieres hacer. Puedes usar las dos en el mismo lote, en cualquier orden, tantas veces como necesites.
+      </div>
+    </div>
+
+    <!-- PASO 4: Sombra - cámara -->
+    <div class="tut-slide" data-step="3">
+      <svg class="tut-illo" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+        <rect x="60" y="10" width="100" height="160" rx="10" fill="#0d1a0f" stroke="#3a7a42" stroke-width="1.5"/>
+        <rect x="66" y="22" width="88" height="136" rx="4" fill="#142018"/>
+        <line x1="66" y1="49.6" x2="154" y2="49.6" stroke="#5fc46a" stroke-width=".5" opacity=".4"/>
+        <line x1="66" y1="77.2" x2="154" y2="77.2" stroke="#5fc46a" stroke-width=".5" opacity=".4"/>
+        <line x1="66" y1="104.8" x2="154" y2="104.8" stroke="#5fc46a" stroke-width=".5" opacity=".4"/>
+        <line x1="66" y1="132.4" x2="154" y2="132.4" stroke="#5fc46a" stroke-width=".5" opacity=".4"/>
+        <line x1="83.6" y1="22" x2="83.6" y2="158" stroke="#5fc46a" stroke-width=".5" opacity=".4"/>
+        <line x1="101.2" y1="22" x2="101.2" y2="158" stroke="#5fc46a" stroke-width=".5" opacity=".4"/>
+        <line x1="118.8" y1="22" x2="118.8" y2="158" stroke="#5fc46a" stroke-width=".5" opacity=".4"/>
+        <line x1="136.4" y1="22" x2="136.4" y2="158" stroke="#5fc46a" stroke-width=".5" opacity=".4"/>
+        <rect x="83.6" y="49.6" width="17.6" height="27.6" fill="#5fc46a" opacity=".5" rx="1"/>
+        <rect x="101.2" y="22" width="17.6" height="27.6" fill="#5fc46a" opacity=".5" rx="1"/>
+        <rect x="118.8" y="49.6" width="17.6" height="27.6" fill="#5fc46a" opacity=".5" rx="1"/>
+        <circle cx="137" cy="90" r="8" fill="#e8b84b" opacity=".25"/>
+        <circle cx="137" cy="90" r="4" fill="#e8b84b" opacity=".6"/>
+        <text x="154" y="35" text-anchor="end" font-family="monospace" font-size="13" fill="#e8b84b">38%</text>
+      </svg>
+      <div class="tut-step-label">Paso 4 de 8</div>
+      <div class="tut-heading">🌿 Apunta y toca las celdas</div>
+      <div class="tut-body">
+        Apunta la cámara al dosel. La grilla de <b>100 celdas</b> se superpone en pantalla. <b>Toca cada celda</b> con follaje del árbol de sombra. El porcentaje se calcula en tiempo real.
+      </div>
+    </div>
+
+    <!-- PASO 5: Sombra - guardar y repetir -->
+    <div class="tut-slide" data-step="4">
+      <svg class="tut-illo" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+        <line x1="30" y1="80" x2="190" y2="80" stroke="#3a7a42" stroke-width="1" stroke-dasharray="4 4"/>
+        <circle cx="50" cy="80" r="12" fill="#1c2e1f" stroke="#5fc46a" stroke-width="1.5"/>
+        <text x="50" y="84" text-anchor="middle" font-family="monospace" font-size="8" fill="#5fc46a">45%</text>
+        <circle cx="95" cy="80" r="12" fill="#1c2e1f" stroke="#5fc46a" stroke-width="1.5"/>
+        <text x="95" y="84" text-anchor="middle" font-family="monospace" font-size="8" fill="#5fc46a">62%</text>
+        <circle cx="140" cy="80" r="12" fill="#1c2e1f" stroke="#5fc46a" stroke-width="1.5"/>
+        <text x="140" y="84" text-anchor="middle" font-family="monospace" font-size="8" fill="#5fc46a">38%</text>
+        <circle cx="185" cy="80" r="12" fill="#1c2e1f" stroke="#e8b84b" stroke-width="1.5" stroke-dasharray="3 2"/>
+        <text x="185" y="77" text-anchor="middle" font-family="monospace" font-size="7" fill="#567050">próx.</text>
+        <text x="185" y="87" text-anchor="middle" font-family="monospace" font-size="7" fill="#567050">punto</text>
+        <text x="50" y="60" text-anchor="middle" font-family="monospace" font-size="7" fill="#567050">P01</text>
+        <text x="95" y="60" text-anchor="middle" font-family="monospace" font-size="7" fill="#567050">P02</text>
+        <text x="140" y="60" text-anchor="middle" font-family="monospace" font-size="7" fill="#567050">P03</text>
+        <rect x="60" y="112" width="100" height="28" rx="4" fill="#1c2e1f" stroke="#3a7a42" stroke-width="1"/>
+        <text x="110" y="124" text-anchor="middle" font-family="monospace" font-size="7" fill="#567050" letter-spacing="1">PROMEDIO</text>
+        <text x="110" y="137" text-anchor="middle" font-family="monospace" font-size="14" fill="#e8b84b" font-weight="300">48%</text>
+      </svg>
+      <div class="tut-step-label">Paso 5 de 8</div>
+      <div class="tut-heading">🌿 Guarda y camina</div>
+      <div class="tut-body">
+        Toca <b>"Guardar lectura"</b> en cada punto. Camina por el lote tomando varias lecturas. La app calcula el <b>promedio automáticamente</b> y captura el GPS de cada punto.
+      </div>
+    </div>
+
+    <!-- PASO 6: Textura - preparar -->
+    <div class="tut-slide" data-step="5">
+      <svg class="tut-illo" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="110" cy="105" rx="55" ry="28" fill="#3a2a1a" opacity=".5"/>
+        <rect x="60" y="75" width="100" height="35" rx="16" fill="#5c3d1e" opacity=".8"/>
+        <ellipse cx="110" cy="75" rx="50" ry="18" fill="#7a5230"/>
+        <circle cx="95" cy="71" r="3" fill="#e8b84b" opacity=".7"/>
+        <circle cx="112" cy="67" r="4" fill="#c8942a" opacity=".6"/>
+        <circle cx="128" cy="72" r="3" fill="#e8b84b" opacity=".7"/>
+        <ellipse cx="155" cy="45" rx="5" ry="8" fill="#5ac8fa" opacity=".8"/>
+        <ellipse cx="168" cy="56" rx="4" ry="6" fill="#5ac8fa" opacity=".6"/>
+        <path d="M155 53 L115 71" stroke="#5ac8fa" stroke-width="1" stroke-dasharray="3 2" opacity=".5"/>
+        <text x="110" y="148" text-anchor="middle" font-family="monospace" font-size="10" fill="#8aaa80">≈ 25 g + agua gota a gota</text>
+      </svg>
+      <div class="tut-step-label">Paso 6 de 8</div>
+      <div class="tut-heading">🪨 Prepara la muestra</div>
+      <div class="tut-body">
+        Toma un puñado de suelo (≈ 25 g). Agrega agua <b>gota a gota</b> y amasa hasta que tenga la consistencia de arcilla de modelar — húmedo pero sin encharcarse.
+      </div>
+    </div>
+
+    <!-- PASO 7: Textura - árbol de decisión -->
+    <div class="tut-slide" data-step="6">
+      <svg class="tut-illo" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+        <rect x="70" y="15" width="80" height="22" rx="4" fill="#1c2e1f" stroke="#e8b84b" stroke-width="1"/>
+        <text x="110" y="30" text-anchor="middle" font-family="monospace" font-size="8" fill="#e8b84b">¿Forma bola?</text>
+        <line x1="90" y1="37" x2="60" y2="58" stroke="#5fc46a" stroke-width="1"/>
+        <line x1="130" y1="37" x2="160" y2="58" stroke="#e05a4a" stroke-width="1"/>
+        <text x="72" y="56" font-family="monospace" font-size="7" fill="#5fc46a">Sí</text>
+        <text x="148" y="56" font-family="monospace" font-size="7" fill="#e05a4a">No</text>
+        <rect x="30" y="60" width="70" height="20" rx="3" fill="#1c2e1f" stroke="#3a7a42" stroke-width=".8"/>
+        <text x="65" y="73" text-anchor="middle" font-family="monospace" font-size="7" fill="#8aaa80">¿Forma cinta?</text>
+        <rect x="125" y="60" width="65" height="20" rx="3" fill="#1c2e1f" stroke="#e05a4a" stroke-width=".8"/>
+        <text x="157" y="73" text-anchor="middle" font-family="monospace" font-size="7" fill="#e05a4a">Arena</text>
+        <line x1="65" y1="80" x2="65" y2="100" stroke="#5fc46a" stroke-width="1"/>
+        <rect x="30" y="100" width="70" height="20" rx="3" fill="#1c2e1f" stroke="#3a7a42" stroke-width=".8"/>
+        <text x="65" y="113" text-anchor="middle" font-family="monospace" font-size="7" fill="#8aaa80">¿Largo cinta?</text>
+        <line x1="65" y1="120" x2="65" y2="140" stroke="#5fc46a" stroke-width="1"/>
+        <rect x="30" y="140" width="70" height="20" rx="3" fill="#1c2e1f" stroke="#3a7a42" stroke-width=".8"/>
+        <text x="65" y="153" text-anchor="middle" font-family="monospace" font-size="7" fill="#8aaa80">¿Sensación?</text>
+        <circle cx="157" cy="130" r="18" fill="#1c2e1f" stroke="#e8b84b" stroke-width="1.2"/>
+        <text x="157" y="127" text-anchor="middle" font-family="ui-sans-serif,sans-serif" font-size="7" fill="#e8b84b" font-weight="700">Franco</text>
+        <text x="157" y="138" text-anchor="middle" font-family="monospace" font-size="6" fill="#567050">Loam</text>
+      </svg>
+      <div class="tut-step-label">Paso 7 de 8</div>
+      <div class="tut-heading">🪨 Sigue el diagnóstico</div>
+      <div class="tut-body">
+        La app te hace preguntas paso a paso: ¿forma bola?, ¿hace cinta?, ¿qué tan larga?, ¿arenoso o sedoso al frotar? Al final determina la <b>clase textural</b> automáticamente.
+      </div>
+    </div>
+
+    <!-- PASO 8: Exportar -->
+    <div class="tut-slide" data-step="7">
+      <svg class="tut-illo" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+        <rect x="40" y="10" width="140" height="145" rx="5" fill="#1c2e1f" stroke="#3a7a42" stroke-width="1.2"/>
+        <rect x="40" y="10" width="140" height="20" rx="5" fill="#1f3323"/>
+        <rect x="40" y="22" width="140" height="8" fill="#1f3323"/>
+        <text x="110" y="24" text-anchor="middle" font-family="monospace" font-size="6" fill="#5fc46a" letter-spacing="1">HERRAMIENTAS PARA EL CAMPO</text>
+        <text x="52" y="43" font-family="monospace" font-size="6" fill="#567050">🌿 LECTURAS DE SOMBRA</text>
+        <text x="52" y="54" font-family="monospace" font-size="6" fill="#567050">P01  45%  GPS: 6.20, -75.56</text>
+        <text x="52" y="63" font-family="monospace" font-size="6" fill="#567050">P02  62%  GPS: 6.21, -75.57</text>
+        <text x="52" y="72" font-family="monospace" font-size="6" fill="#8aaa80">Promedio: 53% — ALTO</text>
+        <line x1="50" y1="78" x2="170" y2="78" stroke="#3a7a42" stroke-width=".5"/>
+        <text x="52" y="88" font-family="monospace" font-size="6" fill="#567050">🪨 MUESTRAS DE TEXTURA</text>
+        <text x="52" y="99" font-family="monospace" font-size="6" fill="#567050">T01  Franco  GPS: 6.20, -75.56</text>
+        <text x="52" y="108" font-family="monospace" font-size="6" fill="#567050">T02  Arcilla  GPS: 6.21, -75.57</text>
+        <line x1="50" y1="116" x2="170" y2="116" stroke="#3a7a42" stroke-width=".5"/>
+        <text x="52" y="127" font-family="monospace" font-size="6" fill="#567050">Exportado: 30/03/2026</text>
+        <path d="M110 163 L110 175 M104 170 L110 176 L116 170" fill="none" stroke="#5fc46a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="tut-step-label">Paso 8 de 8</div>
+      <div class="tut-heading">Exporta todo junto</div>
+      <div class="tut-body">
+        Toca <b>"Exportar TXT"</b> desde el resumen del lote. El archivo incluye todas las lecturas de sombra <b>y</b> todas las muestras de textura, cada una con sus coordenadas GPS.
+      </div>
+    </div>
+
+  </div><!-- /tut-slides -->
+
+  <div class="tut-footer">
+    <div class="tut-dots" id="tut-dots">
+      <div class="tut-dot active" onclick="goStep(0)"></div>
+      <div class="tut-dot" onclick="goStep(1)"></div>
+      <div class="tut-dot" onclick="goStep(2)"></div>
+      <div class="tut-dot" onclick="goStep(3)"></div>
+      <div class="tut-dot" onclick="goStep(4)"></div>
+      <div class="tut-dot" onclick="goStep(5)"></div>
+      <div class="tut-dot" onclick="goStep(6)"></div>
+      <div class="tut-dot" onclick="goStep(7)"></div>
+    </div>
+    <div class="tut-btn-row">
+      <button class="tut-prev" id="tut-prev" onclick="tutPrev()" style="display:none">← Atrás</button>
+      <button class="tut-next" id="tut-next" onclick="tutNext()">Siguiente →</button>
+    </div>
+  </div>
+
+</div><!-- /tutorial -->
+
+<!-- TUTORIAL TEXTURA -->
+<div id="tx-tutorial" class="hidden">
+
+  <div class="tut-header">
+    <span class="tut-title">Cómo analizar la textura</span>
+    <button class="tut-skip" onclick="closeTxTutorial()">Saltar</button>
+  </div>
+
+  <div class="tut-slides" id="txt-slides">
+
+    <!-- PASO 1 -->
+    <div class="tut-slide active" data-step="0">
+      <svg class="tut-illo" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+        <!-- mano con suelo -->
+        <ellipse cx="110" cy="110" rx="55" ry="30" fill="#3a2a1a" opacity=".6" rx="8"/>
+        <rect x="60" y="80" width="100" height="35" rx="16" fill="#5c3d1e" opacity=".8"/>
+        <ellipse cx="110" cy="80" rx="50" ry="18" fill="#7a5230"/>
+        <!-- partículas de suelo -->
+        <circle cx="95" cy="76" r="3" fill="#e8b84b" opacity=".7"/>
+        <circle cx="112" cy="72" r="4" fill="#c8942a" opacity=".6"/>
+        <circle cx="128" cy="77" r="3" fill="#e8b84b" opacity=".7"/>
+        <circle cx="103" cy="82" r="2" fill="#c8942a" opacity=".5"/>
+        <!-- gotas de agua -->
+        <ellipse cx="150" cy="50" rx="5" ry="8" fill="#5ac8fa" opacity=".8"/>
+        <ellipse cx="165" cy="62" rx="4" ry="6" fill="#5ac8fa" opacity=".6"/>
+        <ellipse cx="138" cy="58" rx="3" ry="5" fill="#5ac8fa" opacity=".7"/>
+        <!-- flechas gota→suelo -->
+        <path d="M150 58 L110 76" stroke="#5ac8fa" stroke-width="1" stroke-dasharray="3 2" opacity=".5"/>
+        <text x="110" y="148" text-anchor="middle" font-family="monospace" font-size="10" fill="#8aaa80">≈ 25 g de suelo</text>
+        <text x="110" y="163" text-anchor="middle" font-family="monospace" font-size="10" fill="#567050">+ agua gota a gota</text>
+      </svg>
+      <div class="tut-step-label">Paso 1 de 5</div>
+      <div class="tut-heading">Prepara la muestra</div>
+      <div class="tut-body">Toma un puñado de suelo (≈ 25 g). Agrega agua <b>gota a gota</b> y amasa hasta que tenga consistencia de <b>arcilla de modelar</b> — húmedo pero sin encharcarse.</div>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="tut-slide" data-step="1">
+      <svg class="tut-illo" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+        <!-- puño cerrando -->
+        <rect x="75" y="55" width="70" height="80" rx="20" fill="#5c3d1e" opacity=".85"/>
+        <rect x="80" y="70" width="60" height="50" rx="12" fill="#7a5230"/>
+        <!-- flecha compresión -->
+        <path d="M110 40 L110 58" stroke="#5fc46a" stroke-width="2.5" stroke-linecap="round" marker-end="url(#arr2)"/>
+        <defs><marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#5fc46a" stroke-width="2" stroke-linecap="round"/></marker></defs>
+        <!-- bola resultado -->
+        <circle cx="110" cy="148" r="20" fill="#7a5230" opacity=".9"/>
+        <text x="110" y="153" text-anchor="middle" font-family="monospace" font-size="9" fill="#e8b84b">bola</text>
+      </svg>
+      <div class="tut-step-label">Paso 2 de 5</div>
+      <div class="tut-heading">¿Forma una bola?</div>
+      <div class="tut-body">Aprieta el suelo en el puño. Si <b>mantiene la forma</b> al abrir la mano → continúa. Si se desmorona, el suelo puede ser muy arenoso o necesitar más agua. La app te guía paso a paso.</div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div class="tut-slide" data-step="2">
+      <svg class="tut-illo" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+        <!-- pulgar e índice -->
+        <ellipse cx="85" cy="110" rx="18" ry="35" fill="#5c3d1e" opacity=".8" transform="rotate(-15,85,110)"/>
+        <ellipse cx="135" cy="100" rx="14" ry="30" fill="#5c3d1e" opacity=".8" transform="rotate(10,135,100)"/>
+        <!-- cinta saliendo -->
+        <rect x="95" y="60" width="30" height="12" rx="4" fill="#7a5230"/>
+        <rect x="95" y="48" width="30" height="14" rx="3" fill="#9a6a3a" opacity=".9"/>
+        <rect x="95" y="36" width="28" height="14" rx="3" fill="#9a6a3a" opacity=".7"/>
+        <!-- medidas -->
+        <line x1="58" y1="60" x2="58" y2="84" stroke="#e8b84b" stroke-width="1" stroke-dasharray="2 2"/>
+        <text x="50" y="75" font-family="monospace" font-size="8" fill="#e8b84b" text-anchor="middle">2.5</text>
+        <text x="50" y="84" font-family="monospace" font-size="7" fill="#567050" text-anchor="middle">cm</text>
+        <line x1="170" y1="36" x2="170" y2="84" stroke="#e8b84b" stroke-width="1" stroke-dasharray="2 2"/>
+        <text x="178" y="65" font-family="monospace" font-size="8" fill="#e8b84b">5 cm</text>
+      </svg>
+      <div class="tut-step-label">Paso 3 de 5</div>
+      <div class="tut-heading">Forma una cinta</div>
+      <div class="tut-body">Coloca la bola entre el <b>pulgar y el índice</b>. Empuja hacia arriba formando una cinta de grosor uniforme. Observa <b>qué tan larga</b> queda antes de romperse por su propio peso.</div>
+    </div>
+
+    <!-- PASO 4 -->
+    <div class="tut-slide" data-step="3">
+      <svg class="tut-illo" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+        <!-- palma abierta -->
+        <ellipse cx="110" cy="120" rx="50" ry="28" fill="#5c3d1e" opacity=".7"/>
+        <rect x="68" y="90" width="84" height="35" rx="14" fill="#7a5230" opacity=".85"/>
+        <!-- pellizco de suelo -->
+        <ellipse cx="110" cy="88" rx="16" ry="8" fill="#9a6a3a"/>
+        <!-- dedo frotando -->
+        <ellipse cx="130" cy="80" rx="10" ry="16" fill="#5c3d1e" opacity=".9" transform="rotate(20,130,80)"/>
+        <!-- flechas fricción -->
+        <path d="M118 84 L128 80" stroke="#e8b84b" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M120 90 L130 86" stroke="#e8b84b" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- leyenda tactil -->
+        <text x="55" y="148" text-anchor="middle" font-family="monospace" font-size="9" fill="#5fc46a">arenoso</text>
+        <text x="110" y="148" text-anchor="middle" font-family="monospace" font-size="9" fill="#e8b84b">equilibrado</text>
+        <text x="165" y="148" text-anchor="middle" font-family="monospace" font-size="9" fill="#5ac8fa">sedoso</text>
+        <line x1="40" y1="140" x2="185" y2="140" stroke="#3a7a42" stroke-width="1" opacity=".4"/>
+      </svg>
+      <div class="tut-step-label">Paso 4 de 5</div>
+      <div class="tut-heading">Frota en la palma</div>
+      <div class="tut-body">Humedece un poco de suelo en la palma y frota con el índice. ¿Se siente <b>arenoso y áspero</b>? ¿<b>Suave y sedoso</b>? ¿O ninguno de los dos? Eso determina si predomina arena o limo.</div>
+    </div>
+
+    <!-- PASO 5 -->
+    <div class="tut-slide" data-step="4">
+      <svg class="tut-illo" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+        <!-- resultado tarjeta -->
+        <rect x="40" y="25" width="140" height="90" rx="8" fill="#1c2e1f" stroke="#e8b84b" stroke-width="1.5"/>
+        <text x="110" y="50" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14" fill="#e8b84b" font-weight="700">Franco</text>
+        <text x="110" y="66" text-anchor="middle" font-family="monospace" font-size="8" fill="#567050">Loam</text>
+        <line x1="52" y1="74" x2="168" y2="74" stroke="#3a7a42" stroke-width=".6"/>
+        <text x="65" y="88" font-family="monospace" font-size="7" fill="#8aaa80">Arcilla  7–27%</text>
+        <text x="65" y="99" font-family="monospace" font-size="7" fill="#8aaa80">Limo    25–50%</text>
+        <text x="65" y="110" font-family="monospace" font-size="7" fill="#8aaa80">Arena   25–52%</text>
+        <!-- pin GPS -->
+        <circle cx="165" cy="88" r="10" fill="#5fc46a" opacity=".2"/>
+        <text x="165" y="92" text-anchor="middle" font-size="12">📍</text>
+        <!-- botón guardar -->
+        <rect x="55" y="130" width="110" height="22" rx="4" fill="#5fc46a"/>
+        <text x="110" y="145" text-anchor="middle" font-family="monospace" font-size="9" fill="#0d1a0f" font-weight="700">Guardar muestra</text>
+      </svg>
+      <div class="tut-step-label">Paso 5 de 5</div>
+      <div class="tut-heading">Guarda con GPS</div>
+      <div class="tut-body">Al llegar al resultado verás la clase textural con los rangos de arcilla, limo y arena. Toca <b>"Guardar muestra"</b> — registra las coordenadas GPS automáticamente. Puedes tomar varias muestras en distintos puntos.</div>
+    </div>
+
+  </div><!-- /tut-slides -->
+
+  <div class="tut-footer">
+    <div class="tut-dots" id="txt-dots">
+      <div class="tut-dot active" onclick="txtGoStep(0)"></div>
+      <div class="tut-dot" onclick="txtGoStep(1)"></div>
+      <div class="tut-dot" onclick="txtGoStep(2)"></div>
+      <div class="tut-dot" onclick="txtGoStep(3)"></div>
+      <div class="tut-dot" onclick="txtGoStep(4)"></div>
+    </div>
+    <div class="tut-btn-row">
+      <button class="tut-prev" id="txt-prev" onclick="txtPrev()" style="display:none">← Atrás</button>
+      <button class="tut-next" id="txt-next" onclick="txtNext()">Siguiente →</button>
+    </div>
+  </div>
+
+</div><!-- /tx-tutorial -->
+
+<div id="toast"></div>
+
+<script>
+// ── STATE ──
+let S={lote:null,readings:[],texturas:[]};
+let stream=null;
+
+function persist(){ try{localStorage.setItem('dc_s',JSON.stringify(S));}catch(e){} }
+function hydrate(){
+  try{
+    const d=JSON.parse(localStorage.getItem('dc_s')||'null');
+    if(d&&d.lote){S.lote=d.lote;S.readings=d.readings||[];S.texturas=d.texturas||[];}
+  }catch(e){}
+}
+
+// ── GRID ──
+let cells=new Array(100).fill(false);
+let cv,cx,vid;
+const NC=10,NR=10;
+let cW,cH,tipOff=false,isDown=false,lastI=-1;
+
+function toast(m,ms=1800){
+  const t=document.getElementById('toast');
+  t.textContent=m;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),ms);
+}
+
+// ── NAV ──
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function goHome(){show('sh');stopCam();const bvl=document.getElementById('bvl');if(bvl)bvl.style.display=S.lote?'block':'none';}
+function goSetup(){
+  document.getElementById('ifecha').value=new Date().toISOString().split('T')[0];
+  if(S.lote){
+    document.getElementById('ifinca').value=S.lote.finca;
+    document.getElementById('ilote').value=S.lote.lote;
+    document.getElementById('iresp').value=S.lote.responsable||'';
+    document.getElementById('ifecha').value=S.lote.fecha||'';
+    document.getElementById('iobs').value=S.lote.observaciones||'';
+  }
+  show('ss');
+}
+function goMenu(){
+  if(!S.lote)return;
+  show('smenu');stopCam();
+  document.getElementById('menu-lote-name').textContent=S.lote.finca+' — '+S.lote.lote;
+  // badges
+  const nb=S.readings.length;
+  document.getElementById('menu-badge-sombra').textContent=
+    nb===0?'Sin lecturas':nb+(nb===1?' lectura':' lecturas')+' · '+(Math.round(S.readings.reduce((s,r)=>s+r.pct,0)/nb))+'% prom.';
+  const nt=S.texturas.length;
+  document.getElementById('menu-badge-textura').textContent=
+    nt===0?'Sin muestras':nt+(nt===1?' muestra':' muestras')+' · '+S.texturas[nt-1].nombre;
+}
+function goMeasure(){show('sm');resetGrid();startCam();updHud();}
+function goLote(){show('sl');stopCam();renderLote();}
+function goAcerca(){show('sa');stopCam();}
+function startTextura(){
+  if(!S.lote){toast('Primero configura un lote');goSetup();return;}
+  txNode='n1';txHistory=[];txPendingResult=null;txPendingHistory=[];
+  show('stx');stopCam();renderTx();
+  // Mostrar tutorial la primera vez
+  try{
+    if(!localStorage.getItem('dc_txt_tut')){
+      setTimeout(openTxTutorial, 350);
+    }
+  }catch(e){}
+}
+function goTextura(){startTextura();}
+
+// ── SETUP ──
+function startLote(){
+  const f=(document.getElementById('ifinca').value||'').trim();
+  const l=(document.getElementById('ilote').value||'').trim();
+  if(!f||!l){toast('Ingrese finca y lote');return;}
+  S.lote={finca:f,lote:l,responsable:(document.getElementById('iresp').value||'').trim(),fecha:document.getElementById('ifecha').value,observaciones:(document.getElementById('iobs').value||'').trim(),createdAt:new Date().toISOString()};
+  S.readings=[];S.texturas=[];persist();goMenu();
+}
+
+// ── CAMERA ──
+async function startCam(){
+  vid=document.getElementById('vid');
+  cv=document.getElementById('gcv');
+  cx=cv.getContext('2d');
+  document.getElementById('cerr').style.display='none';
+
+  // Cámara frontal por defecto → trasera → cualquiera
+  const opts=[
+    {video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},audio:false},
+    {video:{facingMode:{ideal:'environment'}},audio:false},
+    {video:true,audio:false}
+  ];
+  let st=null;
+  for(const o of opts){try{st=await navigator.mediaDevices.getUserMedia(o);break;}catch(e){}}
+
+  if(!st){document.getElementById('cerr').style.display='flex';rszCv();setupEv();return;}
+  stream=st;vid.srcObject=st;vid.play();
+  rszCv();setupEv();
+}
+
+function stopCam(){
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+}
+
+function rszCv(){
+  cv=cv||document.getElementById('gcv');
+  cx=cv.getContext('2d');
+  cv.width=window.innerWidth;cv.height=window.innerHeight;
+  cW=cv.width/NC;cH=cv.height/NR;drawGrid();
+}
+
+// ── GRID ──
+function resetGrid(){
+  cells=new Array(100).fill(false);tipOff=false;
+  document.getElementById('gtip').classList.remove('hi');
+  drawGrid();updHud();
+}
+
+function drawGrid(){
+  if(!cx)return;
+  cx.clearRect(0,0,cv.width,cv.height);
+  for(let i=0;i<100;i++){
+    const c=i%NC,r=Math.floor(i/NC),x=c*cW,y=r*cH;
+    if(cells[i]){
+      cx.fillStyle='rgba(95,196,106,0.42)';cx.fillRect(x+.5,y+.5,cW-1,cH-1);
+      cx.strokeStyle='#5fc46a';cx.lineWidth=1.5;cx.strokeRect(x+.5,y+.5,cW-1,cH-1);
+    } else {
+      cx.strokeStyle='rgba(180,220,160,0.22)';cx.lineWidth=.7;cx.strokeRect(x+.5,y+.5,cW-1,cH-1);
+    }
+    if(cW>36&&cH>36){
+      cx.fillStyle=cells[i]?'rgba(13,26,15,.55)':'rgba(180,220,160,.18)';
+      cx.font=Math.min(8,cW*.17)+'px monospace';
+      cx.fillText(i+1,x+3,y+9);
+    }
+  }
+}
+
+function setupEv(){
+  cv=document.getElementById('gcv');
+  cv.addEventListener('touchstart',onT,{passive:false});
+  cv.addEventListener('touchmove',onT,{passive:false});
+  cv.addEventListener('mousedown',onMd);
+  cv.addEventListener('mousemove',onMm);
+  document.addEventListener('mouseup',()=>{isDown=false;lastI=-1;});
+  window.addEventListener('resize',()=>{if(document.getElementById('sm').classList.contains('active'))rszCv();});
+}
+
+function sc(e,t){
+  const r=cv.getBoundingClientRect(),sx=cv.width/r.width,sy=cv.height/r.height;
+  if(t)return{x:(t.clientX-r.left)*sx,y:(t.clientY-r.top)*sy};
+  return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};
+}
+function ci(x,y){const c=Math.floor(x/cW),r=Math.floor(y/cH);if(c<0||c>=NC||r<0||r>=NR)return -1;return r*NC+c;}
+function mark(i){
+  if(i<0||i===lastI)return;
+  cells[i]=!cells[i];lastI=i;drawGrid();updHud();
+  if(!tipOff){tipOff=true;document.getElementById('gtip').classList.add('hi');}
+}
+function onT(e){e.preventDefault();lastI=-1;for(const t of e.changedTouches){const{x,y}=sc(e,t);mark(ci(x,y));}}
+function onMd(e){isDown=true;lastI=-1;const{x,y}=sc(e,null);mark(ci(x,y));}
+function onMm(e){if(!isDown)return;const{x,y}=sc(e,null);const i=ci(x,y);if(i>=0&&i!==lastI){cells[i]=true;lastI=i;drawGrid();updHud();}}
+
+function cnt(){return cells.filter(Boolean).length;}
+function updHud(){
+  const n=cnt();
+  document.getElementById('hcnt').textContent=n;
+  document.getElementById('hpct').textContent=n+'%';
+  document.getElementById('hpid').textContent='Punto '+(S.readings.length+1);
+  document.getElementById('hlid').textContent=S.lote?S.lote.finca+' · '+S.lote.lote:'';
+}
+
+// ── SAVE ──
+async function saveReading(){
+  const n=cnt();
+  let gps=null;
+  if(navigator.geolocation){
+    gps=await new Promise(res=>navigator.geolocation.getCurrentPosition(
+      p=>res({lat:p.coords.latitude.toFixed(6),lng:p.coords.longitude.toFixed(6)}),
+      ()=>res(null),{timeout:4000}
+    ));
+  }
+  const r={id:S.readings.length+1,pct:n,timestamp:new Date().toISOString(),gps};
+  S.readings.push(r);persist();
+  toast('Punto '+r.id+' guardado · '+n+'%');
+  resetGrid();updHud();goMenu();
+}
+
+// ── LOTE ──
+function renderLote(){
+  if(!S.lote)return;
+  document.getElementById('lnam').textContent=S.lote.finca+' — '+S.lote.lote;
+  document.getElementById('lmet').textContent=(S.lote.responsable||'—')+' · '+fd(S.lote.fecha);
+
+  // Sombra
+  const n=S.readings.length;
+  const avg=n>0?Math.round(S.readings.reduce((s,r)=>s+r.pct,0)/n):null;
+  document.getElementById('slec-val').textContent=n;
+  document.getElementById('spro-val').textContent=avg!==null?avg+'%':'—';
+  let nv='sin datos',nc='var(--text3)';
+  if(avg!==null){if(avg<25){nv='Nivel bajo';nc='var(--red)'}else if(avg<50){nv='Nivel medio';nc='var(--amber)'}else{nv='Nivel alto';nc='var(--green-hi)'}}
+  const ne=document.getElementById('sniv-val');ne.textContent=nv;ne.style.color=nc;
+
+  // Textura – resumen del array
+  const txNom=document.getElementById('lote-tx-nombre');
+  const txRng=document.getElementById('lote-tx-ranges');
+  const nt=S.texturas.length;
+  if(nt>0){
+    const last=S.texturas[nt-1];
+    txNom.textContent=nt+(nt===1?' muestra':' muestras')+' · última: '+last.nombre;
+    txNom.style.color='var(--amber)';
+    txRng.textContent='Arc. '+last.arcilla+' · Limo '+last.limo+' · Arena '+last.arena;
+  } else {
+    txNom.textContent='Sin muestras';
+    txNom.style.color='var(--text3)';
+    txRng.textContent='Usa "+ Nueva medición" → Textura del suelo';
+  }
+
+  // Lista de lecturas de sombra
+  const list=document.getElementById('rlist');list.innerHTML='';
+  if(n===0){
+    list.innerHTML='<div class="empty"><div style="font-size:2rem">🌿</div><div class="etxt">Sin lecturas de sombra.<br>Toque "+ Nueva medición".</div></div>';
+    return;
+  }
+  // Lecturas de sombra
+  const hdr=document.createElement('div');
+  hdr.style.cssText='font-size:9px;letter-spacing:.16em;color:var(--text3);text-transform:uppercase;padding:.8rem 1.2rem .4rem;';
+  hdr.textContent='🌿 Lecturas de sombra';
+  list.appendChild(hdr);
+  S.readings.forEach((r,i)=>{
+    const d=document.createElement('div');d.className='ritem';
+    d.innerHTML=`<div class="rnum">P${r.id}</div><div class="rbarw"><div class="rbar" style="width:${r.pct}%"></div></div><div class="rpct">${r.pct}%</div><div class="rtime">${ft(r.timestamp)}</div><button class="rdel" onclick="delSombra(${i})">×</button>`;
+    list.appendChild(d);
+  });
+
+  // Muestras de textura
+  if(S.texturas.length>0){
+    const hdr2=document.createElement('div');
+    hdr2.style.cssText='font-size:9px;letter-spacing:.16em;color:var(--text3);text-transform:uppercase;padding:.8rem 1.2rem .4rem;border-top:1px solid var(--border);';
+    hdr2.textContent='🪨 Muestras de textura';
+    list.appendChild(hdr2);
+    S.texturas.forEach((t,i)=>{
+      const d=document.createElement('div');d.className='ritem';
+      const g=t.gps?`${t.gps.lat}, ${t.gps.lng}`:'Sin GPS';
+      d.innerHTML=`<div class="rnum">T${t.id}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:600;color:var(--text);font-family:ui-sans-serif,system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.nombre}</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:1px">${g}</div>
+        </div>
+        <div class="rtime">${ft(t.timestamp)}</div>
+        <button class="rdel" onclick="delTextura(${i})">×</button>`;
+      list.appendChild(d);
+    });
+  }
+}
+
+function delSombra(i){S.readings.splice(i,1);S.readings.forEach((r,j)=>r.id=j+1);persist();renderLote();toast('Lectura eliminada');}
+function delTextura(i){S.texturas.splice(i,1);S.texturas.forEach((t,j)=>t.id=j+1);persist();renderLote();toast('Muestra eliminada');}
+
+// ── EXPORT ──
+function exportTxt(){
+  if(!S.lote||(S.readings.length===0&&S.texturas.length===0)){toast('No hay datos para exportar');return;}
+  const avg=Math.round(S.readings.reduce((s,r)=>s+r.pct,0)/S.readings.length);
+  const nv=avg<25?'BAJO':avg<50?'MEDIO':'ALTO';
+  const sep='─'.repeat(50);
+  const L=[];
+  L.push('HERRAMIENTAS PARA EL CAMPO');
+  L.push('Estimación de porcentaje de cobertura de dosel');
+  L.push(sep);L.push('');
+  L.push('FINCA         : '+S.lote.finca);
+  L.push('LOTE          : '+S.lote.lote);
+  L.push('RESPONSABLE   : '+(S.lote.responsable||'—'));
+  L.push('FECHA         : '+fd(S.lote.fecha));
+  if(S.lote.observaciones)L.push('OBSERVACIONES : '+S.lote.observaciones);
+  L.push('');L.push(sep);L.push('LECTURAS POR PUNTO');L.push(sep);L.push('');
+  L.push('Pto.  Cobertura   GPS (lat, lng)              Hora');
+  L.push('─'.repeat(54));
+  S.readings.forEach(r=>{
+    const g=r.gps?r.gps.lat+', '+r.gps.lng:'Sin GPS';
+    L.push('P'+String(r.id).padStart(2,'0')+'   '+(r.pct+'%').padEnd(10)+' '+g.padEnd(28)+' '+ft(r.timestamp));
+  });
+  L.push('');L.push(sep);L.push('RESUMEN');L.push(sep);L.push('');
+  L.push('Total de puntos    : '+S.readings.length);
+  L.push('Promedio cobertura : '+avg+'%');
+  L.push('Nivel de sombra    : '+nv);
+  L.push('Valor mínimo       : '+Math.min(...S.readings.map(r=>r.pct))+'%');
+  L.push('Valor máximo       : '+Math.max(...S.readings.map(r=>r.pct))+'%');
+  L.push('');L.push(sep);L.push('DISTRIBUCIÓN');L.push('');
+  S.readings.forEach(r=>{L.push('P'+String(r.id).padStart(2,'0')+' ['+'█'.repeat(Math.round(r.pct/5)).padEnd(20)+'] '+r.pct+'%');});
+  // Sección textura del suelo
+  L.push('');L.push(sep);L.push('MUESTRAS DE TEXTURA DEL SUELO');L.push(sep);L.push('');
+  if(S.texturas.length>0){
+    L.push('Método              : Textura al tacto (Thien 1979)');
+    L.push('Total de muestras   : '+S.texturas.length);
+    L.push('');
+    L.push('Mst.  Clase textural             GPS (lat, lng)              Hora');
+    L.push('─'.repeat(70));
+    S.texturas.forEach(t=>{
+      const g=t.gps?t.gps.lat+', '+t.gps.lng:'Sin GPS';
+      L.push('T'+String(t.id).padStart(2,'0')+'   '+t.nombre.padEnd(32)+' '+g.padEnd(28)+' '+ft(t.timestamp));
+    });
+    L.push('');
+    L.push('Detalle de muestras:');
+    S.texturas.forEach(t=>{
+      const g=t.gps?t.gps.lat+', '+t.gps.lng:'Sin GPS';
+      L.push('');
+      L.push('  T'+String(t.id).padStart(2,'0')+' — '+t.nombre+' ('+t.nombreEn+')');
+      L.push('  GPS       : '+g);
+      L.push('  Arcilla   : '+t.arcilla+'  ·  Limo: '+t.limo+'  ·  Arena: '+t.arena);
+      L.push('  Pasos del análisis:');
+      t.historial.forEach((h,i)=>{
+        L.push('    '+(i+1)+'. '+h.q+' → '+h.a);
+      });
+    });
+  } else {
+    L.push('Sin muestras de textura registradas para este lote.');
+  }
+  L.push('');L.push(sep);
+  L.push('Exportado: '+new Date().toLocaleString('es-CO'));
+  L.push('Generado con Herramientas para el Campo · Comité Creativo');
+  L.push(sep);
+  const blob=new Blob([L.join('\n')],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='densiometro_'+sl(S.lote.finca)+'_'+sl(S.lote.lote)+'_'+(S.lote.fecha||'sin-fecha')+'.txt';
+  a.click();URL.revokeObjectURL(url);toast('Archivo descargado');
+}
+
+// ── UTILS ──
+function sl(s){return(s||'').toLowerCase().replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/ñ/g,'n').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+function fd(d){if(!d)return'—';const[y,m,day]=d.split('-');return day+'/'+m+'/'+y;}
+function ft(iso){return new Date(iso).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});}
+
+
+// ══ TEXTURA DE SUELO ══
+// Árbol de decisión basado en S.J. Thien 1979 / USDA Texture by Feel
+
+const TX_RESULTS = {
+  SAND:          { es:'Arena',          en:'Sand',          icon:'🏖️', desc:'Suelo de partículas muy gruesas. No forma cinta ni bola estable. Muy baja retención de agua y nutrientes.', arcilla:'<5%', limo:'<5%', arena:'>90%' },
+  LOAMY_SAND:    { es:'Arena Franca',   en:'Loamy Sand',    icon:'🟤', desc:'Arena con algo de finos. Forma una bola muy frágil pero no hace cinta. Baja retención de agua.', arcilla:'<8%', limo:'<15%', arena:'>70%' },
+  SANDY_LOAM:    { es:'Franco Arenoso', en:'Sandy Loam',    icon:'🌱', desc:'Buena presencia de arena con algo de arcilla y limo. Cinta corta y sensación arenosa al frotar.', arcilla:'8–18%', limo:'<30%', arena:'43–85%' },
+  LOAM:          { es:'Franco',         en:'Loam',          icon:'✅', desc:'Textura equilibrada, considerada ideal para la agricultura. Combina bien arena, limo y arcilla.', arcilla:'7–27%', limo:'25–50%', arena:'25–52%' },
+  SILT_LOAM:     { es:'Franco Limoso',  en:'Silt Loam',     icon:'💧', desc:'Alto contenido de limo. Se siente muy suave y sedoso. Buena retención de humedad.', arcilla:'<27%', limo:'50–80%', arena:'<50%' },
+  SANDY_CLAY_LOAM:{ es:'Franco Arcillo Arenoso', en:'Sandy Clay Loam', icon:'🟠', desc:'Mezcla con arena y arcilla prominentes. Cinta media y sensación arenosa al frotar.', arcilla:'20–35%', limo:'<28%', arena:'45–80%' },
+  CLAY_LOAM:     { es:'Franco Arcilloso', en:'Clay Loam',   icon:'🔶', desc:'Más plástico que el franco. Cinta media sin predominar ni arena ni limo al frotar.', arcilla:'27–40%', limo:'15–55%', arena:'20–45%' },
+  SILTY_CLAY_LOAM:{ es:'Franco Arcillo Limoso', en:'Silty Clay Loam', icon:'🟣', desc:'Alto limo y arcilla. Muy suave al frotar, cinta media, muy plástico húmedo.', arcilla:'27–40%', limo:'40–72%', arena:'<20%' },
+  SANDY_CLAY:    { es:'Arcillo Arenoso', en:'Sandy Clay',   icon:'🟥', desc:'Alta arcilla con mucha arena. Cinta larga, sensación arenosa al frotar.', arcilla:'>35%', limo:'<20%', arena:'45–65%' },
+  SILTY_CLAY:    { es:'Arcillo Limoso', en:'Silty Clay',    icon:'🔴', desc:'Alta arcilla con mucho limo. Cinta larga, muy suave al frotar.', arcilla:'>40%', limo:'>40%', arena:'<20%' },
+  CLAY:          { es:'Arcilla',        en:'Clay',          icon:'🧱', desc:'Máxima plasticidad. Cinta larga y ninguna sensación dominante de arena ni limo al frotar.', arcilla:'>40%', limo:'<40%', arena:'<45%' },
+};
+
+// Nodos del árbol: { id, q, hint, choices:[{label, icon, yes, next}] } | { id, result }
+const TX_TREE = {
+  // FASE 1 — forma bola
+  n1: {
+    id:'n1', step:1, total:8,
+    q:'¿La muestra de suelo forma una bola al apretarla en la mano?',
+    hint:'<b>Cómo hacerlo:</b> Toma unos 25 g de suelo húmedo (como arcilla de moldear). Apriétalo en el puño. Si se desmorona, ajusta la humedad: agrega agua gota a gota si está muy seco, o amásalo con suelo seco si está muy mojado.',
+    choices:[
+      {label:'Sí, forma una bola', icon:'✅', yes:true, next:'n2'},
+      {label:'No, se desmorona', icon:'❌', yes:false, next:'n_nodry'},
+    ]
+  },
+  // sub-nodo: si no forma bola → ¿muy seco?
+  n_nodry: {
+    id:'n_nodry', step:1, total:8,
+    q:'¿El suelo se siente muy seco?',
+    hint:'Si el suelo está extremadamente seco, puede desmoronarse sin ser arena. Agrega agua gota a gota y amasa de nuevo antes de concluir.',
+    choices:[
+      {label:'Sí, está muy seco — volver a intentar con agua', icon:'💧', yes:true, next:'n1'},
+      {label:'No, está húmedo y aun así se desmorona', icon:'❌', yes:false, next:'n_wet'},
+    ]
+  },
+  n_wet: {
+    id:'n_wet', step:1, total:8,
+    q:'¿El suelo se siente muy mojado o pegajoso?',
+    hint:'Un suelo demasiado mojado también puede fallar al formar bola. Si es así, amásalo con un poco de suelo seco.',
+    choices:[
+      {label:'Sí, está muy mojado — volver a intentar', icon:'💧', yes:true, next:'n1'},
+      {label:'No, y aun así no forma bola', icon:'❌', yes:false, next:'r_SAND'},
+    ]
+  },
+  r_SAND:{ id:'r_SAND', result:'SAND' },
+
+  // FASE 2 — forma cinta
+  n2:{
+    id:'n2', step:2, total:8,
+    q:'¿Puedes formar una cinta con el suelo empujándolo entre el pulgar y el índice?',
+    hint:'<b>Cómo hacerlo:</b> Coloca la bola entre el pulgar y el índice. Empuja el suelo hacia arriba con el pulgar, formando una cinta de ancho y grosor uniformes. Deja que sobresalga y se rompa por su propio peso.',
+    choices:[
+      {label:'Sí, forma una cinta', icon:'✅', yes:true, next:'n3'},
+      {label:'No, no forma cinta', icon:'❌', yes:false, next:'r_LOAMY_SAND'},
+    ]
+  },
+  r_LOAMY_SAND:{ id:'r_LOAMY_SAND', result:'LOAMY_SAND' },
+
+  // FASE 3 — largo de la cinta
+  n3:{
+    id:'n3', step:3, total:8,
+    q:'¿Qué tan larga es la cinta antes de romperse?',
+    hint:'Mide visualmente la cinta desde que sale hasta que cae. Esta longitud determina el contenido de arcilla.',
+    choices:[
+      {label:'Corta — menos de 2.5 cm', icon:'📏', yes:true, next:'n4a'},
+      {label:'Media — entre 2.5 y 5 cm', icon:'📐', yes:true, next:'n4b'},
+      {label:'Larga — 5 cm o más', icon:'📌', yes:true, next:'n4c'},
+    ]
+  },
+
+  // FASE 4a — frotar (cinta corta)
+  n4a:{
+    id:'n4a', step:4, total:8,
+    q:'Humedece un poco de suelo en la palma y frótatelo con el dedo índice. ¿Qué sientes?',
+    hint:'Frota enérgicamente. La sensación de arena (granos que raspan) indica arenas gruesas. La sensación de seda o polvo fino indica limo.',
+    choices:[
+      {label:'Muy arenoso — raspa mucho', icon:'⚡', yes:true, next:'r_SANDY_LOAM'},
+      {label:'Muy suave o sedoso', icon:'🫧', yes:true, next:'r_SILT_LOAM'},
+      {label:'Ni muy arenoso ni muy suave', icon:'🤝', yes:true, next:'r_LOAM'},
+    ]
+  },
+  r_SANDY_LOAM:{ id:'r_SANDY_LOAM', result:'SANDY_LOAM' },
+  r_SILT_LOAM: { id:'r_SILT_LOAM',  result:'SILT_LOAM'  },
+  r_LOAM:      { id:'r_LOAM',       result:'LOAM'       },
+
+  // FASE 4b — frotar (cinta media)
+  n4b:{
+    id:'n4b', step:5, total:8,
+    q:'Humedece un poco de suelo y frótatelo. ¿Qué sientes?',
+    hint:'Igual que antes: raspa = arena dominante; sedoso = limo dominante; ni lo uno ni lo otro = equilibrado.',
+    choices:[
+      {label:'Muy arenoso — raspa mucho', icon:'⚡', yes:true, next:'r_SANDY_CLAY_LOAM'},
+      {label:'Muy suave o sedoso', icon:'🫧', yes:true, next:'r_SILTY_CLAY_LOAM'},
+      {label:'Ni muy arenoso ni muy suave', icon:'🤝', yes:true, next:'r_CLAY_LOAM'},
+    ]
+  },
+  r_SANDY_CLAY_LOAM: { id:'r_SANDY_CLAY_LOAM', result:'SANDY_CLAY_LOAM' },
+  r_SILTY_CLAY_LOAM: { id:'r_SILTY_CLAY_LOAM', result:'SILTY_CLAY_LOAM' },
+  r_CLAY_LOAM:       { id:'r_CLAY_LOAM',       result:'CLAY_LOAM'       },
+
+  // FASE 4c — frotar (cinta larga)
+  n4c:{
+    id:'n4c', step:6, total:8,
+    q:'Humedece un poco de suelo y frótatelo. ¿Qué sientes?',
+    hint:'Con cinta larga la arcilla es alta. Ahora determina si hay más arena o más limo de fondo.',
+    choices:[
+      {label:'Muy arenoso — raspa mucho', icon:'⚡', yes:true, next:'r_SANDY_CLAY'},
+      {label:'Muy suave o sedoso', icon:'🫧', yes:true, next:'r_SILTY_CLAY'},
+      {label:'Ni muy arenoso ni muy suave', icon:'🤝', yes:true, next:'r_CLAY'},
+    ]
+  },
+  r_SANDY_CLAY: { id:'r_SANDY_CLAY', result:'SANDY_CLAY' },
+  r_SILTY_CLAY: { id:'r_SILTY_CLAY', result:'SILTY_CLAY' },
+  r_CLAY:       { id:'r_CLAY',       result:'CLAY'       },
+};
+
+let txNode = 'n1';
+let txHistory = [];
+let txPendingResult = null;
+let txPendingHistory = [];
+
+function goTextura(){
+  txNode = 'n1';
+  txHistory = [];
+  show('stx');
+  stopCam();
+  renderTx();
+}
+
+function renderTx(){
+  // Mostrar lote activo en header
+  const metaEl=document.getElementById('tx-lote-meta');
+  if(metaEl&&S.lote) metaEl.textContent=S.lote.finca+' · '+S.lote.lote;
+  const node = TX_TREE[txNode];
+  const body = document.getElementById('tx-body');
+  const pbar = document.getElementById('tx-pbar');
+
+  if(node.result){
+    // Resultado final
+    const r = TX_RESULTS[node.result];
+    pbar.style.width = '100%';
+    body.innerHTML = `
+      <div class="tx-result">
+        <div class="tx-result-icon">${r.icon}</div>
+        <div>
+          <div class="tx-result-class">${r.es}</div>
+          <div class="tx-result-class-en">${r.en}</div>
+        </div>
+        <div class="tx-result-desc">${r.desc}</div>
+      </div>
+      <div class="tx-result-props">
+        <div class="tx-prop"><div class="tx-prop-label">Arcilla</div><div class="tx-prop-val">${r.arcilla}</div></div>
+        <div class="tx-prop"><div class="tx-prop-label">Limo</div><div class="tx-prop-val">${r.limo}</div></div>
+        <div class="tx-prop"><div class="tx-prop-label">Arena</div><div class="tx-prop-val">${r.arena}</div></div>
+        <div class="tx-prop"><div class="tx-prop-label">Pasos</div><div class="tx-prop-val">${txHistory.length}</div></div>
+      </div>
+      <div class="tx-history">
+        <div class="tx-step-label">Respuestas registradas</div>
+        ${txHistory.map(h=>`
+          <div class="tx-hist-item">
+            <span class="tx-hist-q">${h.q}</span>
+            <span class="tx-hist-a ${h.yes===true?'s':h.yes===false?'n':''}">${h.label}</span>
+          </div>`).join('')}
+      </div>
+      <div class="tx-action-row">
+        <button class="tx-btn-sec" onclick="startTextura()">Nuevo análisis</button>
+        <button class="tx-btn-pri" id="tx-save-btn" onclick="saveTxReading()">Guardar muestra</button>
+      </div>
+    `;
+    return;
+  }
+
+  // Nodo de pregunta
+  const pct = node.total ? Math.round((node.step-1)/node.total*100) : 0;
+  pbar.style.width = pct + '%';
+
+  const choicesHtml = node.choices.map((c,i)=>`
+    <button class="tx-choice ${c.yes===true&&node.choices.length===2?'yes':c.yes===false&&node.choices.length===2?'no':''}"
+            onclick="txChoose(${i})">
+      <span class="tx-choice-icon">${c.icon}</span>
+      <span>${c.label}</span>
+    </button>`).join('');
+
+  body.innerHTML = `
+    <div class="tx-step-label">Paso ${node.step} de ${node.total}</div>
+    <div class="tx-question">${node.q}</div>
+    <div class="tx-hint">${node.hint}</div>
+    <div class="tx-choices">${choicesHtml}</div>
+    ${txHistory.length>0?`
+    <div class="tx-history">
+      <div class="tx-step-label">Respuestas anteriores</div>
+      ${txHistory.map(h=>`
+        <div class="tx-hist-item">
+          <span class="tx-hist-q">${h.q}</span>
+          <span class="tx-hist-a ${h.yes===true?'s':h.yes===false?'n':''}">${h.label}</span>
+        </div>`).join('')}
+    </div>`:''}
+  `;
+  body.scrollTop = 0;
+}
+
+function txChoose(i){
+  const node = TX_TREE[txNode];
+  const choice = node.choices[i];
+  txHistory.push({q: node.q.replace(/<[^>]+>/g,''), label: choice.label, yes: choice.yes});
+  txNode = choice.next;
+  // Si llegamos a un resultado, guardarlo en array con GPS
+  const nextNode = TX_TREE[txNode];
+  if(nextNode && nextNode.result){
+    txPendingResult = nextNode.result;
+    txPendingHistory = [...txHistory];
+  }
+  renderTx();
+}
+
+
+// ── GUARDAR MUESTRA DE TEXTURA ──
+async function saveTxReading(){
+  if(!txPendingResult) return;
+  const btn=document.getElementById('tx-save-btn');
+  if(btn){btn.textContent='Guardando…';btn.disabled=true;}
+
+  let gps=null;
+  if(navigator.geolocation){
+    gps=await new Promise(res=>
+      navigator.geolocation.getCurrentPosition(
+        p=>res({lat:p.coords.latitude.toFixed(6),lng:p.coords.longitude.toFixed(6)}),
+        ()=>res(null),{timeout:4000}
+      )
+    );
+  }
+
+  const r=TX_RESULTS[txPendingResult];
+  const muestra={
+    id: S.texturas.length+1,
+    clase: txPendingResult,
+    nombre: r.es,
+    nombreEn: r.en,
+    arcilla: r.arcilla,
+    limo: r.limo,
+    arena: r.arena,
+    timestamp: new Date().toISOString(),
+    gps,
+    historial: txPendingHistory.map(h=>({q:h.q,a:h.label})).concat([{q:'Resultado',a:r.es}])
+  };
+
+  S.texturas.push(muestra);
+  persist();
+  toast('Muestra T'+muestra.id+' guardada · '+muestra.nombre);
+  txPendingResult=null;
+  txPendingHistory=[];
+  goMenu();
+}
+
+
+// ══ TUTORIAL TEXTURA ══
+let txtStep = 0;
+const TXT_STEPS = 5;
+
+function openTxTutorial(){
+  txtStep = 0;
+  txtGoStep(0);
+  document.getElementById('tx-tutorial').classList.remove('hidden');
+}
+function closeTxTutorial(){
+  document.getElementById('tx-tutorial').classList.add('hidden');
+  try{ localStorage.setItem('dc_txt_tut','1'); }catch(e){}
+}
+function txtNext(){
+  if(txtStep < TXT_STEPS-1){ txtGoStep(txtStep+1); }
+  else { closeTxTutorial(); }
+}
+function txtPrev(){
+  if(txtStep>0) txtGoStep(txtStep-1);
+}
+function txtGoStep(n){
+  const slides=document.querySelectorAll('#txt-slides .tut-slide');
+  const dots=document.querySelectorAll('#txt-dots .tut-dot');
+  slides[txtStep].classList.remove('active');
+  slides[txtStep].classList.add('exit');
+  setTimeout(()=>{ if(slides[txtStep]) slides[txtStep].classList.remove('exit'); },320);
+  txtStep=n;
+  slides[txtStep].classList.add('active');
+  dots.forEach((d,i)=>d.classList.toggle('active',i===txtStep));
+  document.getElementById('txt-prev').style.display=txtStep===0?'none':'block';
+  document.getElementById('txt-next').textContent=txtStep===TXT_STEPS-1?'Entendido ✓':'Siguiente →';
+}
+
+
+// ── TUTORIAL ──
+let tutStep = 0;
+const TUT_STEPS = 8;
+
+function goTutorial(){
+  tutStep = 0;
+  renderTutStep();
+  document.getElementById('tutorial').classList.remove('hidden');
+}
+
+function closeTutorial(){
+  document.getElementById('tutorial').classList.add('hidden');
+  try{ localStorage.setItem('dc_tut','1'); }catch(e){}
+}
+
+function tutNext(){
+  if(tutStep < TUT_STEPS - 1){ goStep(tutStep + 1); }
+  else { closeTutorial(); }
+}
+
+function tutPrev(){
+  if(tutStep > 0) goStep(tutStep - 1);
+}
+
+function goStep(n){
+  const slides = document.querySelectorAll('#tutorial .tut-slide');
+  const dots   = document.querySelectorAll('#tut-dots .tut-dot');
+
+  // Salir del slide actual
+  slides[tutStep].classList.remove('active');
+  slides[tutStep].classList.add('exit');
+  setTimeout(()=>{ slides[tutStep] && slides[tutStep].classList.remove('exit'); }, 320);
+
+  tutStep = n;
+
+  // Entrar al nuevo slide
+  slides[tutStep].classList.add('active');
+
+  // Actualizar dots
+  dots.forEach((d,i)=>d.classList.toggle('active', i===tutStep));
+
+  // Botones
+  const prev = document.getElementById('tut-prev');
+  const next = document.getElementById('tut-next');
+  prev.style.display = tutStep === 0 ? 'none' : 'block';
+  next.textContent   = tutStep === TUT_STEPS - 1 ? 'Comenzar ✓' : 'Siguiente →';
+}
+
+function renderTutStep(){ goStep(0); }
+
+// ── BOOT ──
+// Calcular altura real del viewport (excluye barras del browser en móvil)
+function setVh(){
+  document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01)+'px');
+}
+setVh();
+window.addEventListener('resize', setVh);
+window.addEventListener('orientationchange', ()=>setTimeout(setVh, 200));
+
+hydrate();
+const _bvl=document.getElementById('bvl');if(_bvl)_bvl.style.display=S.lote?'block':'none';
+
+// Mostrar tutorial la primera vez
+try{
+  if(!localStorage.getItem('dc_tut')){
+    setTimeout(goTutorial, 300); // pequeño delay para que el --vh esté calculado
+  }
+}catch(e){}
+</script>
+</body>
+</html>
