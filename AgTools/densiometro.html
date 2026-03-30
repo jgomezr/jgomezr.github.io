@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d1a0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Densiómetro">
+<title>Densiómetro Digital</title>
+
+<!-- PWA manifest inline -->
+<script>
+(function(){
+  const svg=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%230d1a0f'/><rect x='12' y='12' width='168' height='168' rx='8' stroke='%235fc46a' stroke-width='4' fill='none'/><line x1='12' y1='52' x2='180' y2='52' stroke='%235fc46a' stroke-width='2' opacity='.4'/><line x1='12' y1='92' x2='180' y2='92' stroke='%235fc46a' stroke-width='2' opacity='.4'/><line x1='12' y1='132' x2='180' y2='132' stroke='%235fc46a' stroke-width='2' opacity='.4'/><line x1='52' y1='12' x2='52' y2='180' stroke='%235fc46a' stroke-width='2' opacity='.4'/><line x1='92' y1='12' x2='92' y2='180' stroke='%235fc46a' stroke-width='2' opacity='.4'/><line x1='132' y1='12' x2='132' y2='180' stroke='%235fc46a' stroke-width='2' opacity='.4'/><rect x='93' y='53' width='38' height='38' fill='%235fc46a' opacity='.8' rx='3'/><rect x='53' y='93' width='38' height='38' fill='%235fc46a' opacity='.5' rx='3'/><rect x='133' y='93' width='38' height='38' fill='%235fc46a' opacity='.4' rx='3'/><rect x='93' y='133' width='38' height='38' fill='%235fc46a' opacity='.7' rx='3'/></svg>`;
+  const iconUrl=`data:image/svg+xml,${svg}`;
+  const manifest={name:'Densiómetro Cúbico Digital',short_name:'Densiómetro',description:'Estimación de cobertura de dosel en cafetales',start_url:'.',display:'standalone',orientation:'portrait',background_color:'#0d1a0f',theme_color:'#0d1a0f',icons:[{src:iconUrl,sizes:'192x192',type:'image/svg+xml'},{src:iconUrl,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
+  const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+  const link=document.createElement('link');
+  link.rel='manifest';link.href=URL.createObjectURL(blob);
+  document.head.appendChild(link);
+})();
+</script>
+
+<!-- Service Worker inline para offline -->
+<script>
+if('serviceWorker' in navigator){
+  const code=`
+const V='dc1';
+self.addEventListener('install',e=>{self.skipWaiting();});
+self.addEventListener('activate',e=>{e.waitUntil(clients.claim());});
+self.addEventListener('fetch',e=>{
+  if(e.request.method!=='GET')return;
+  e.respondWith(caches.open(V).then(c=>c.match(e.request).then(r=>{
+    if(r)return r;
+    return fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}).catch(()=>r);
+  })));
+});`;
+  const blob=new Blob([code],{type:'text/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+}
+</script>
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0d1a0f;
+  --bg3:#1c2e1f;
+  --surface:#1f3323;
+  --border:rgba(120,200,100,0.15);
+  --border2:rgba(120,200,100,0.3);
+  --green:#5fc46a;
+  --green-dim:#3a7a42;
+  --green-hi:#7edb8a;
+  --amber:#e8b84b;
+  --amber-dim:#a07c28;
+  --red:#e05a4a;
+  --text:#d4e8c8;
+  --text2:#8aaa80;
+  --text3:#567050;
+}
+
+html,body{
+  height:100%;background:var(--bg);color:var(--text);
+  font-family:ui-monospace,'Cascadia Code','Fira Mono',monospace;
+  overflow:hidden;-webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;-webkit-font-smoothing:antialiased;
+}
+
+.screen{display:none;flex-direction:column;height:100dvh;height:100vh}
+.screen.active{display:flex}
+
+/* HOME */
+#sh{
+  align-items:center;justify-content:space-between;
+  padding:0;
+  background:var(--bg);position:relative;overflow:hidden;
+  flex-direction:column;
+}
+#sh::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 39px,var(--border) 40px),
+             repeating-linear-gradient(90deg,transparent,transparent 39px,var(--border) 40px);
+}
+.home-main{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:2rem 2rem 1rem;
+  position:relative;width:100%;
+  min-height:0;
+}
+.home-footer{
+  width:100%;display:flex;flex-direction:column;
+  align-items:center;gap:5px;
+  padding:1rem 1.5rem 1.4rem;
+  border-top:1px solid var(--border);
+  position:relative;flex-shrink:0;
+}
+.hbadge{font-size:10px;letter-spacing:.18em;color:var(--text3);text-transform:uppercase;margin-bottom:1.2rem;position:relative}
+.htitle{font-size:clamp(1.8rem,7vw,3.2rem);font-weight:300;line-height:1.1;color:var(--green-hi);text-align:center;position:relative;margin-bottom:.5rem;letter-spacing:-.02em}
+.hsub{font-size:11px;color:var(--text3);letter-spacing:.12em;text-align:center;margin-bottom:2rem;position:relative}
+
+.bp{font-family:inherit;font-size:13px;letter-spacing:.08em;background:var(--green);color:#0d1a0f;border:none;padding:14px 36px;border-radius:2px;cursor:pointer;font-weight:600;transition:background .15s,transform .1s}
+.bp:active{transform:scale(.97);background:var(--green-hi)}
+.bg{font-family:inherit;font-size:12px;letter-spacing:.08em;background:transparent;color:var(--text2);border:1px solid var(--border2);padding:12px 28px;border-radius:2px;cursor:pointer;transition:background .15s;margin-top:12px}
+.bg:active{background:var(--surface)}
+
+/* SETUP */
+#ss{background:var(--bg)}
+.shdr{padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.8rem}
+.bbk{background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px;font-family:inherit;padding:4px}
+.stitle{font-size:1.1rem;font-weight:300;color:var(--green-hi)}
+.sbody{flex:1;overflow-y:auto;padding:1.2rem;display:flex;flex-direction:column;gap:1rem}
+.flabel{font-size:10px;letter-spacing:.15em;color:var(--text3);text-transform:uppercase;margin-bottom:5px}
+.finput{font-family:inherit;font-size:14px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:2px;padding:11px 13px;width:100%;outline:none;transition:border-color .15s;-webkit-appearance:none}
+.finput:focus{border-color:var(--green-dim)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ibox{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--green-dim);border-radius:2px;padding:11px 13px;font-size:11px;color:var(--text2);line-height:1.7}
+.sftr{padding:1rem 1.2rem;border-top:1px solid var(--border)}
+
+/* MEASURE */
+#sm{background:#000;position:relative}
+#vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#gcv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.htop{
+  position:absolute;top:0;left:0;right:0;padding:.8rem 1rem;
+  background:linear-gradient(to bottom,rgba(13,26,15,.92),transparent);
+  display:flex;align-items:flex-start;justify-content:space-between;z-index:10;
+}
+.hlabel{font-size:10px;letter-spacing:.12em;color:var(--text2)}
+.hsublabel{font-size:9px;color:var(--text3);margin-top:2px;letter-spacing:.08em}
+.hpct{font-size:26px;font-weight:300;color:var(--amber);line-height:1;text-align:right}
+.hcells{font-size:9px;letter-spacing:.1em;color:var(--text3);text-align:right;margin-top:2px}
+.gtip{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-size:12px;letter-spacing:.1em;color:rgba(255,255,255,.5);
+  text-align:center;pointer-events:none;z-index:5;transition:opacity .4s;
+  text-shadow:0 1px 4px rgba(0,0,0,.8);
+}
+.gtip.hi{opacity:0}
+.cerr{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:1rem;padding:2rem;
+  text-align:center;z-index:20;
+}
+.cerr-ico{font-size:3rem}
+.cerr-txt{font-size:13px;color:var(--text2);line-height:1.6}
+.hbot{
+  position:absolute;bottom:0;left:0;right:0;padding:1rem;
+  background:linear-gradient(to top,rgba(13,26,15,.95),transparent);
+  display:flex;gap:10px;z-index:10;align-items:center;
+}
+.breset{font-family:inherit;font-size:11px;background:rgba(255,255,255,.06);color:var(--text2);border:1px solid var(--border);padding:10px 16px;border-radius:2px;cursor:pointer}
+.breset:active{background:var(--surface)}
+.bsave{font-family:inherit;font-size:13px;background:var(--green);color:#0d1a0f;border:none;padding:12px 0;border-radius:2px;cursor:pointer;flex:1;font-weight:600}
+.bsave:active{background:var(--green-hi)}
+.bsave:disabled{background:var(--bg3);color:var(--text3);cursor:default}
+
+/* LOTE */
+#sl{background:var(--bg)}
+.lhdr{padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between}
+.lname{font-size:1.05rem;font-weight:300;color:var(--green-hi);line-height:1.2}
+.lmeta{font-size:10px;color:var(--text3);letter-spacing:.08em;margin-top:3px}
+.lsum{display:flex;border-bottom:1px solid var(--border)}
+.sstat{flex:1;padding:.9rem .4rem;text-align:center;border-right:1px solid var(--border)}
+.sstat:last-child{border-right:none}
+.sval{font-size:1.7rem;font-weight:300;color:var(--amber);line-height:1}
+.slbl{font-size:9px;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;margin-top:3px}
+.rlist{flex:1;overflow-y:auto}
+.ritem{display:flex;align-items:center;padding:11px 1.2rem;border-bottom:1px solid var(--border);gap:.8rem;animation:fi .2s ease}
+@keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.rnum{font-size:10px;color:var(--text3);min-width:26px}
+.rbarw{flex:1;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.rbar{height:100%;background:var(--green);border-radius:2px;transition:width .4s}
+.rpct{font-size:13px;font-weight:600;color:var(--text);min-width:40px;text-align:right}
+.rtime{font-size:10px;color:var(--text3);min-width:44px;text-align:right}
+.rdel{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:4px;line-height:1}
+.rdel:active{color:var(--red)}
+.lftr{padding:.9rem 1.2rem;border-top:1px solid var(--border);display:flex;gap:10px}
+.bnew{font-family:inherit;font-size:13px;background:var(--green);color:#0d1a0f;border:none;padding:13px 0;border-radius:2px;cursor:pointer;flex:1;font-weight:600}
+.bnew:active{background:var(--green-hi)}
+.bexp{font-family:inherit;font-size:11px;background:transparent;color:var(--amber);border:1px solid var(--amber-dim);padding:13px 14px;border-radius:2px;cursor:pointer;white-space:nowrap}
+.bexp:active{background:rgba(232,184,75,.1)}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;padding:2rem;opacity:.5}
+.etxt{font-size:12px;color:var(--text3);letter-spacing:.08em;text-align:center;line-height:1.7}
+
+/* ACERCA */
+#sa{background:var(--bg);overflow-y:auto}
+.achdr{padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.8rem}
+.acbody{padding:1.5rem 1.2rem;display:flex;flex-direction:column;gap:1.4rem}
+.ac-section{display:flex;flex-direction:column;gap:.5rem}
+.ac-tag{font-size:9px;letter-spacing:.18em;color:var(--text3);text-transform:uppercase}
+.ac-title{font-size:1.05rem;font-weight:300;color:var(--green-hi);line-height:1.3}
+.ac-author{font-size:12px;color:var(--text2);letter-spacing:.04em}
+.ac-doi{
+  display:inline-block;font-size:11px;color:var(--amber);
+  border:1px solid var(--amber-dim);border-radius:2px;
+  padding:8px 12px;text-decoration:none;letter-spacing:.04em;
+  word-break:break-all;line-height:1.5;
+  transition:background .15s;
+}
+.ac-doi:active{background:rgba(232,184,75,.1)}
+.ac-div{height:1px;background:var(--border)}
+.ac-body-txt{font-size:12px;color:var(--text2);line-height:1.8;letter-spacing:.02em}
+.ac-body-txt b{color:var(--text);font-weight:600}
+.ac-ver{font-size:10px;color:var(--text3);letter-spacing:.1em;margin-top:.5rem}
+
+/* COMITÉ CREATIVO BRAND */
+.cc-dev-label{font-size:9px;letter-spacing:.14em;color:rgba(255,255,255,.35);text-transform:uppercase;margin-bottom:5px}
+.cc-badge{
+  display:inline-flex;align-items:center;
+  background:#fff;border-radius:6px;
+  padding:4px 10px;text-decoration:none;
+  transition:opacity .15s;box-shadow:0 2px 12px rgba(0,0,0,.4);
+}
+.cc-badge:active{opacity:.75}
+.home-footer{
+  width:100%;display:flex;flex-direction:column;
+  align-items:center;gap:5px;
+  padding:.9rem 1.5rem 1.2rem;
+  border-top:1px solid var(--border);
+  flex-shrink:0;
+}
+.ac-cc-block{
+  background:#fff;border:1px solid rgba(0,0,0,.08);
+  border-left:3px solid #F68623;
+  border-radius:2px;padding:14px 14px 12px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.ac-cc-link{
+  font-size:11px;color:#F68623;letter-spacing:.06em;
+  text-decoration:none;
+  border-bottom:1px solid rgba(246,134,35,.3);
+  padding-bottom:1px;display:inline;
+}
+.ac-cc-link:active{color:#c86a10}
+.ac-cc-desc{font-size:12px;color:#555;line-height:1.7;letter-spacing:.01em}
+
+/* TOAST */
+#toast{
+  position:fixed;bottom:5.5rem;left:50%;
+  transform:translateX(-50%) translateY(12px);
+  background:var(--surface);border:1px solid var(--border2);
+  color:var(--green-hi);font-size:12px;letter-spacing:.08em;
+  padding:9px 18px;border-radius:2px;z-index:100;
+  opacity:0;transition:opacity .25s,transform .25s;
+  pointer-events:none;white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="sh" class="screen active">
+  <div class="home-main">
+    <svg width="56" height="56" viewBox="0 0 64 64" fill="none" style="margin-bottom:1.5rem;opacity:.9" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="60" height="60" rx="4" stroke="#5fc46a" stroke-width="1.5"/>
+      <line x1="2" y1="15.5" x2="62" y2="15.5" stroke="#5fc46a" stroke-width=".6" opacity=".4"/>
+      <line x1="2" y1="28.5" x2="62" y2="28.5" stroke="#5fc46a" stroke-width=".6" opacity=".4"/>
+      <line x1="2" y1="41.5" x2="62" y2="41.5" stroke="#5fc46a" stroke-width=".6" opacity=".4"/>
+      <line x1="2" y1="54.5" x2="62" y2="54.5" stroke="#5fc46a" stroke-width=".6" opacity=".4"/>
+      <line x1="15.5" y1="2" x2="15.5" y2="62" stroke="#5fc46a" stroke-width=".6" opacity=".4"/>
+      <line x1="28.5" y1="2" x2="28.5" y2="62" stroke="#5fc46a" stroke-width=".6" opacity=".4"/>
+      <line x1="41.5" y1="2" x2="41.5" y2="62" stroke="#5fc46a" stroke-width=".6" opacity=".4"/>
+      <line x1="54.5" y1="2" x2="54.5" y2="62" stroke="#5fc46a" stroke-width=".6" opacity=".4"/>
+      <rect x="29" y="16" width="9" height="9" fill="#5fc46a" opacity=".8" rx="1"/>
+      <rect x="16" y="29" width="9" height="9" fill="#5fc46a" opacity=".5" rx="1"/>
+      <rect x="42" y="29" width="9" height="9" fill="#5fc46a" opacity=".4" rx="1"/>
+      <rect x="29" y="42" width="9" height="9" fill="#5fc46a" opacity=".7" rx="1"/>
+    </svg>
+    <div class="hbadge">Instrumento de campo</div>
+    <div class="htitle">Densiómetro<br>Cúbico Digital</div>
+    <div class="hsub">Cobertura de dosel · Cafetales</div>
+    <button class="bp" onclick="goSetup()">Nuevo lote</button>
+    <button class="bg" id="bvl" style="display:none" onclick="goLote()">Ver lote actual</button>
+    <button onclick="goAcerca()" style="background:none;border:none;color:var(--text3);font-family:inherit;font-size:10px;letter-spacing:.12em;cursor:pointer;margin-top:1.4rem;position:relative;text-decoration:underline;text-underline-offset:3px">Acerca de esta app</button>
+  </div>
+  <div class="home-footer">
+    <div class="cc-dev-label">Desarrollado por</div>
+    <a class="cc-badge" href="https://comitecreativo.com/" target="_blank" rel="noopener">
+      <img src="data:image/webp;base64,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" alt="Comité Creativo — Ver para crear" width="200" height="83" style="display:block">
+    </a>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div id="ss" class="screen">
+  <div class="shdr">
+    <button class="bbk" onclick="goHome()">←</button>
+    <div class="stitle">Configurar lote</div>
+  </div>
+  <div class="sbody">
+    <div><div class="flabel">Nombre de la finca</div>
+      <input class="finput" id="ifinca" type="text" placeholder="Ej: La Esmeralda" autocomplete="off" enterkeyhint="next"></div>
+    <div><div class="flabel">Lote / parcela</div>
+      <input class="finput" id="ilote" type="text" placeholder="Ej: Lote 3 — Guamo" autocomplete="off" enterkeyhint="next"></div>
+    <div class="frow">
+      <div><div class="flabel">Responsable</div>
+        <input class="finput" id="iresp" type="text" placeholder="Nombre" enterkeyhint="next"></div>
+      <div><div class="flabel">Fecha</div>
+        <input class="finput" id="ifecha" type="date"></div>
+    </div>
+    <div><div class="flabel">Observaciones (opcional)</div>
+      <input class="finput" id="iobs" type="text" placeholder="Época, variedad, clima…" enterkeyhint="done"></div>
+    <div class="ibox">La grilla de 100 celdas se superpone sobre la cámara. Toque cada celda que contenga follaje del árbol de sombrío. El porcentaje se calcula automáticamente.</div>
+  </div>
+  <div class="sftr"><button class="bp" style="width:100%" onclick="startLote()">Iniciar lecturas →</button></div>
+</div>
+
+<!-- MEASURE -->
+<div id="sm" class="screen">
+  <video id="vid" autoplay playsinline muted></video>
+  <canvas id="gcv"></canvas>
+  <div class="gtip" id="gtip">Toque las celdas con follaje</div>
+  <div class="cerr" id="cerr" style="display:none">
+    <div class="cerr-ico">📷</div>
+    <div class="cerr-txt">No se pudo acceder a la cámara.<br>Verifique los permisos del navegador.</div>
+    <button class="bg" onclick="goLote()">Continuar sin cámara</button>
+  </div>
+  <div class="htop">
+    <div>
+      <div class="hlabel" id="hpid">Punto —</div>
+      <div class="hsublabel" id="hlid"></div>
+    </div>
+    <div>
+      <div class="hpct" id="hpct">0%</div>
+      <div class="hcells"><span id="hcnt">0</span> / 100 celdas</div>
+    </div>
+  </div>
+  <div class="hbot">
+    <button class="breset" onclick="resetGrid()">Limpiar</button>
+    <button class="bsave" onclick="saveReading()">Guardar lectura</button>
+  </div>
+</div>
+
+<!-- LOTE -->
+<div id="sl" class="screen">
+  <div class="lhdr">
+    <div>
+      <div class="lname" id="lnam">—</div>
+      <div class="lmeta" id="lmet">—</div>
+    </div>
+    <button class="bg" style="padding:7px 12px;font-size:11px;margin-top:0" onclick="goHome()">Inicio</button>
+  </div>
+  <div class="lsum">
+    <div class="sstat"><div class="sval" id="slec">0</div><div class="slbl">Lecturas</div></div>
+    <div class="sstat"><div class="sval" id="spro">—</div><div class="slbl">% promedio</div></div>
+    <div class="sstat"><div class="sval" id="sniv" style="font-size:1rem;padding-top:.35rem">—</div><div class="slbl">Nivel sombra</div></div>
+  </div>
+  <div class="rlist" id="rlist"></div>
+  <div class="lftr">
+    <button class="bnew" onclick="goMeasure()">+ Nueva lectura</button>
+    <button class="bexp" onclick="exportTxt()">Exportar TXT</button>
+  </div>
+</div>
+
+<!-- ACERCA -->
+<div id="sa" class="screen">
+  <div class="achdr">
+    <button class="bbk" onclick="goHome()">←</button>
+    <div class="stitle">Acerca de</div>
+  </div>
+  <div class="acbody">
+
+    <div class="ac-section">
+      <div class="ac-tag">Basada en</div>
+      <div class="ac-title">Instrumentos para estimar el porcentaje de sombra en el cafetal</div>
+      <div class="ac-author">Fernando Farfán-Valencia</div>
+      <a class="ac-doi" href="https://doi.org/10.38141/10781/039" target="_blank" rel="noopener">
+        doi.org/10.38141/10781/039 ↗
+      </a>
+    </div>
+
+    <div class="ac-div"></div>
+
+    <div class="ac-section">
+      <div class="ac-tag">Metodología</div>
+      <div class="ac-body-txt">
+        El <b>Densiómetro Cúbico (DC)</b> es un instrumento de construcción artesanal descrito en la publicación de referencia. Permite estimar el porcentaje de cobertura o sombrío que proporcionan los árboles al café proyectando una grilla de <b>100 cuadrantes</b> sobre el dosel.<br><br>
+        El porcentaje de cobertura en cada punto equivale directamente al número de celdas ocupadas por follaje. Para estimar el <b>porcentaje de sombra general</b> del lote se calcula el promedio de todas las lecturas del recorrido por transectos, según el protocolo del Anexo 1 de la publicación.
+      </div>
+    </div>
+
+    <div class="ac-div"></div>
+
+    <div class="ac-section">
+      <div class="ac-tag">Niveles de referencia</div>
+      <div class="ac-body-txt">
+        <b>Bajo</b> — cobertura menor al 25%<br>
+        <b>Medio</b> — cobertura entre 25% y 49%<br>
+        <b>Alto</b> — cobertura igual o superior al 50%
+      </div>
+    </div>
+
+    <div class="ac-div"></div>
+
+    <div class="ac-section">
+      <div class="ac-tag">Implementación digital</div>
+      <div class="ac-body-txt">
+        Aplicación web progresiva (PWA). Funciona sin conexión a internet. Los datos se almacenan localmente en el dispositivo y pueden exportarse como archivo de texto plano (.txt).
+      </div>
+      <div class="ac-ver">v1.0 · Archivo HTML único · Sin dependencias externas</div>
+    </div>
+
+    <div class="ac-div"></div>
+
+    <div class="ac-section">
+      <div class="ac-tag">Desarrollado por</div>
+      <div class="ac-cc-block">
+        <img src="data:image/webp;base64,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" alt="Comité Creativo — Ver para crear" style="width:100%;max-width:260px;display:block;align-self:center;border-radius:3px">
+        <div class="ac-cc-desc">
+          Consultora de tecnología para impacto social. Soluciones digitales para ONGs y PYMEs en América Latina, con enfoque en agricultura, trazabilidad y transformación digital rural.
+        </div>
+        <div>
+          <a class="ac-cc-link" href="https://comitecreativo.com/" target="_blank" rel="noopener">
+            comitecreativo.com ↗
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── STATE ──
+let S={lote:null,readings:[]};
+let stream=null;
+
+function persist(){ try{localStorage.setItem('dc_s',JSON.stringify(S));}catch(e){} }
+function hydrate(){
+  try{
+    const d=JSON.parse(localStorage.getItem('dc_s')||'null');
+    if(d&&d.lote){S.lote=d.lote;S.readings=d.readings||[];}
+  }catch(e){}
+}
+
+// ── GRID ──
+let cells=new Array(100).fill(false);
+let cv,cx,vid;
+const NC=10,NR=10;
+let cW,cH,tipOff=false,isDown=false,lastI=-1;
+
+function toast(m,ms=1800){
+  const t=document.getElementById('toast');
+  t.textContent=m;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),ms);
+}
+
+// ── NAV ──
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function goHome(){show('sh');stopCam();document.getElementById('bvl').style.display=S.lote?'block':'none';}
+function goSetup(){
+  document.getElementById('ifecha').value=new Date().toISOString().split('T')[0];
+  if(S.lote){
+    document.getElementById('ifinca').value=S.lote.finca;
+    document.getElementById('ilote').value=S.lote.lote;
+    document.getElementById('iresp').value=S.lote.responsable||'';
+    document.getElementById('ifecha').value=S.lote.fecha||'';
+    document.getElementById('iobs').value=S.lote.observaciones||'';
+  }
+  show('ss');
+}
+function goMeasure(){show('sm');resetGrid();startCam();updHud();}
+function goLote(){show('sl');stopCam();renderLote();}
+function goAcerca(){show('sa');stopCam();}
+
+// ── SETUP ──
+function startLote(){
+  const f=(document.getElementById('ifinca').value||'').trim();
+  const l=(document.getElementById('ilote').value||'').trim();
+  if(!f||!l){toast('Ingrese finca y lote');return;}
+  S.lote={finca:f,lote:l,responsable:(document.getElementById('iresp').value||'').trim(),fecha:document.getElementById('ifecha').value,observaciones:(document.getElementById('iobs').value||'').trim(),createdAt:new Date().toISOString()};
+  S.readings=[];persist();goMeasure();
+}
+
+// ── CAMERA ──
+async function startCam(){
+  vid=document.getElementById('vid');
+  cv=document.getElementById('gcv');
+  cx=cv.getContext('2d');
+  document.getElementById('cerr').style.display='none';
+
+  // Intentar cámara trasera → frontal → cualquiera
+  const opts=[
+    {video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false},
+    {video:{facingMode:'user'},audio:false},
+    {video:true,audio:false}
+  ];
+  let st=null;
+  for(const o of opts){try{st=await navigator.mediaDevices.getUserMedia(o);break;}catch(e){}}
+
+  if(!st){document.getElementById('cerr').style.display='flex';rszCv();setupEv();return;}
+  stream=st;vid.srcObject=st;vid.play();
+  rszCv();setupEv();
+}
+
+function stopCam(){
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+}
+
+function rszCv(){
+  cv=cv||document.getElementById('gcv');
+  cx=cv.getContext('2d');
+  cv.width=window.innerWidth;cv.height=window.innerHeight;
+  cW=cv.width/NC;cH=cv.height/NR;drawGrid();
+}
+
+// ── GRID ──
+function resetGrid(){
+  cells=new Array(100).fill(false);tipOff=false;
+  document.getElementById('gtip').classList.remove('hi');
+  drawGrid();updHud();
+}
+
+function drawGrid(){
+  if(!cx)return;
+  cx.clearRect(0,0,cv.width,cv.height);
+  for(let i=0;i<100;i++){
+    const c=i%NC,r=Math.floor(i/NC),x=c*cW,y=r*cH;
+    if(cells[i]){
+      cx.fillStyle='rgba(95,196,106,0.42)';cx.fillRect(x+.5,y+.5,cW-1,cH-1);
+      cx.strokeStyle='#5fc46a';cx.lineWidth=1.5;cx.strokeRect(x+.5,y+.5,cW-1,cH-1);
+    } else {
+      cx.strokeStyle='rgba(180,220,160,0.22)';cx.lineWidth=.7;cx.strokeRect(x+.5,y+.5,cW-1,cH-1);
+    }
+    if(cW>36&&cH>36){
+      cx.fillStyle=cells[i]?'rgba(13,26,15,.55)':'rgba(180,220,160,.18)';
+      cx.font=Math.min(8,cW*.17)+'px monospace';
+      cx.fillText(i+1,x+3,y+9);
+    }
+  }
+}
+
+function setupEv(){
+  cv=document.getElementById('gcv');
+  cv.addEventListener('touchstart',onT,{passive:false});
+  cv.addEventListener('touchmove',onT,{passive:false});
+  cv.addEventListener('mousedown',onMd);
+  cv.addEventListener('mousemove',onMm);
+  document.addEventListener('mouseup',()=>{isDown=false;lastI=-1;});
+  window.addEventListener('resize',()=>{if(document.getElementById('sm').classList.contains('active'))rszCv();});
+}
+
+function sc(e,t){
+  const r=cv.getBoundingClientRect(),sx=cv.width/r.width,sy=cv.height/r.height;
+  if(t)return{x:(t.clientX-r.left)*sx,y:(t.clientY-r.top)*sy};
+  return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};
+}
+function ci(x,y){const c=Math.floor(x/cW),r=Math.floor(y/cH);if(c<0||c>=NC||r<0||r>=NR)return -1;return r*NC+c;}
+function mark(i){
+  if(i<0||i===lastI)return;
+  cells[i]=!cells[i];lastI=i;drawGrid();updHud();
+  if(!tipOff){tipOff=true;document.getElementById('gtip').classList.add('hi');}
+}
+function onT(e){e.preventDefault();lastI=-1;for(const t of e.changedTouches){const{x,y}=sc(e,t);mark(ci(x,y));}}
+function onMd(e){isDown=true;lastI=-1;const{x,y}=sc(e,null);mark(ci(x,y));}
+function onMm(e){if(!isDown)return;const{x,y}=sc(e,null);const i=ci(x,y);if(i>=0&&i!==lastI){cells[i]=true;lastI=i;drawGrid();updHud();}}
+
+function cnt(){return cells.filter(Boolean).length;}
+function updHud(){
+  const n=cnt();
+  document.getElementById('hcnt').textContent=n;
+  document.getElementById('hpct').textContent=n+'%';
+  document.getElementById('hpid').textContent='Punto '+(S.readings.length+1);
+  document.getElementById('hlid').textContent=S.lote?S.lote.finca+' · '+S.lote.lote:'';
+}
+
+// ── SAVE ──
+async function saveReading(){
+  const n=cnt();
+  let gps=null;
+  if(navigator.geolocation){
+    gps=await new Promise(res=>navigator.geolocation.getCurrentPosition(
+      p=>res({lat:p.coords.latitude.toFixed(6),lng:p.coords.longitude.toFixed(6)}),
+      ()=>res(null),{timeout:4000}
+    ));
+  }
+  const r={id:S.readings.length+1,pct:n,timestamp:new Date().toISOString(),gps};
+  S.readings.push(r);persist();
+  toast('Punto '+r.id+' guardado · '+n+'%');
+  resetGrid();updHud();goLote();
+}
+
+// ── LOTE ──
+function renderLote(){
+  if(!S.lote)return;
+  document.getElementById('lnam').textContent=S.lote.finca+' — '+S.lote.lote;
+  document.getElementById('lmet').textContent=(S.lote.responsable||'—')+' · '+fd(S.lote.fecha);
+  const n=S.readings.length;
+  const avg=n>0?Math.round(S.readings.reduce((s,r)=>s+r.pct,0)/n):null;
+  document.getElementById('slec').textContent=n;
+  document.getElementById('spro').textContent=avg!==null?avg+'%':'—';
+  let nv='—',nc='var(--text2)';
+  if(avg!==null){if(avg<25){nv='Bajo';nc='var(--red)'}else if(avg<50){nv='Medio';nc='var(--amber)'}else{nv='Alto';nc='var(--green-hi)'}}
+  const ne=document.getElementById('sniv');ne.textContent=nv;ne.style.color=nc;
+  const list=document.getElementById('rlist');list.innerHTML='';
+  if(n===0){list.innerHTML='<div class="empty"><div style="font-size:2rem">🌿</div><div class="etxt">Sin lecturas aún.<br>Toque "+ Nueva lectura".</div></div>';return;}
+  S.readings.forEach((r,i)=>{
+    const d=document.createElement('div');d.className='ritem';
+    d.innerHTML=`<div class="rnum">P${r.id}</div><div class="rbarw"><div class="rbar" style="width:${r.pct}%"></div></div><div class="rpct">${r.pct}%</div><div class="rtime">${ft(r.timestamp)}</div><button class="rdel" onclick="del(${i})">×</button>`;
+    list.appendChild(d);
+  });
+}
+
+function del(i){S.readings.splice(i,1);S.readings.forEach((r,j)=>r.id=j+1);persist();renderLote();toast('Lectura eliminada');}
+
+// ── EXPORT ──
+function exportTxt(){
+  if(!S.lote||S.readings.length===0){toast('No hay lecturas para exportar');return;}
+  const avg=Math.round(S.readings.reduce((s,r)=>s+r.pct,0)/S.readings.length);
+  const nv=avg<25?'BAJO':avg<50?'MEDIO':'ALTO';
+  const sep='─'.repeat(50);
+  const L=[];
+  L.push('DENSIÓMETRO CÚBICO DIGITAL');
+  L.push('Estimación de porcentaje de sombra en cafetal');
+  L.push(sep);L.push('');
+  L.push('FINCA         : '+S.lote.finca);
+  L.push('LOTE          : '+S.lote.lote);
+  L.push('RESPONSABLE   : '+(S.lote.responsable||'—'));
+  L.push('FECHA         : '+fd(S.lote.fecha));
+  if(S.lote.observaciones)L.push('OBSERVACIONES : '+S.lote.observaciones);
+  L.push('');L.push(sep);L.push('LECTURAS POR PUNTO');L.push(sep);L.push('');
+  L.push('Pto.  Cobertura   GPS (lat, lng)              Hora');
+  L.push('─'.repeat(54));
+  S.readings.forEach(r=>{
+    const g=r.gps?r.gps.lat+', '+r.gps.lng:'Sin GPS';
+    L.push('P'+String(r.id).padStart(2,'0')+'   '+(r.pct+'%').padEnd(10)+' '+g.padEnd(28)+' '+ft(r.timestamp));
+  });
+  L.push('');L.push(sep);L.push('RESUMEN');L.push(sep);L.push('');
+  L.push('Total de puntos    : '+S.readings.length);
+  L.push('Promedio cobertura : '+avg+'%');
+  L.push('Nivel de sombra    : '+nv);
+  L.push('Valor mínimo       : '+Math.min(...S.readings.map(r=>r.pct))+'%');
+  L.push('Valor máximo       : '+Math.max(...S.readings.map(r=>r.pct))+'%');
+  L.push('');L.push(sep);L.push('DISTRIBUCIÓN');L.push('');
+  S.readings.forEach(r=>{L.push('P'+String(r.id).padStart(2,'0')+' ['+'█'.repeat(Math.round(r.pct/5)).padEnd(20)+'] '+r.pct+'%');});
+  L.push('');L.push(sep);
+  L.push('Exportado: '+new Date().toLocaleString('es-CO'));
+  L.push('Generado con Densiómetro Cúbico Digital');
+  L.push(sep);
+  const blob=new Blob([L.join('\n')],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='densiometro_'+sl(S.lote.finca)+'_'+sl(S.lote.lote)+'_'+(S.lote.fecha||'sin-fecha')+'.txt';
+  a.click();URL.revokeObjectURL(url);toast('Archivo descargado');
+}
+
+// ── UTILS ──
+function sl(s){return(s||'').toLowerCase().replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/ñ/g,'n').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+function fd(d){if(!d)return'—';const[y,m,day]=d.split('-');return day+'/'+m+'/'+y;}
+function ft(iso){return new Date(iso).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});}
+
+// ── BOOT ──
+hydrate();
+document.getElementById('bvl').style.display=S.lote?'block':'none';
+</script>
+</body>
+</html>
