@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: feedApp/app
+        working-directory: app
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,15 +29,14 @@ jobs:
       - run: npm install
       - run: npm test
       # Base = /<nombre-del-repo>/ para que los assets carguen bajo el subdirectorio de Pages.
-      # Si el repo se llama <usuario>.github.io (user site, sirve desde la raíz), cambia
-      # VITE_BASE a "/" abajo.
+      # Si el repo se llama <usuario>.github.io (user site, raíz), cambia VITE_BASE a "/".
       - name: Build
         run: npm run build
         env:
-          VITE_BASE: /
+          VITE_BASE: /${{ github.event.repository.name }}/
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: feedApp/app/dist
+          path: app/dist
 
   deploy:
     needs: build
