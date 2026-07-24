@@ -375,6 +375,13 @@ input[type=color].inp { padding: 2px; flex: 0 0 42px; width: 42px; height: 31px;
     box-shadow: 4px 0 24px rgba(0,0,0,.4);
   }
   body.sb-open #sidebar { transform: none; }
+  body.sb-open::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .45);
+    z-index: 15;   /* debajo del sidebar (20): el panel sigue interactivo */
+  }
   body.tabs-side { padding-left: 0; }
   body.tabs-side #tabs-bar {
     position: static; width: auto;
@@ -1820,6 +1827,13 @@ ui.newBtn.addEventListener('click', () => newNote());
 ui.modeBtn.addEventListener('click', toggleMode);
 ui.delBtn.addEventListener('click', deleteCurrent);
 ui.menuBtn.addEventListener('click', () => document.body.classList.toggle('sb-open'));
+document.addEventListener('click', e => {
+  // en móvil, tocar fuera del panel abierto lo cierra
+  if (!document.body.classList.contains('sb-open')) return;
+  if (!matchMedia('(max-width: 700px)').matches) return;
+  if (e.target.closest('#sidebar') || e.target.closest('#menu-btn')) return;
+  document.body.classList.remove('sb-open');
+});
 ui.graphBtn.addEventListener('click', () => Graph.show());
 ui.settingsBtn.addEventListener('click', () => Settings.open());
 $('#graph-close').addEventListener('click', () => Graph.hide());
