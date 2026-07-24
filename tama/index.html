@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>TamaBoy</title>
+  <meta name="theme-color" content="#6a4fb0">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="console">
+    <div class="screen-frame">
+      <canvas id="screen" width="160" height="272"></canvas>
+    </div>
+
+    <div class="controls">
+      <div class="dpad">
+        <button class="d-up" data-btn="up" aria-label="Arriba"></button>
+        <button class="d-left" data-btn="left" aria-label="Izquierda"></button>
+        <div class="d-center"><i></i></div>
+        <button class="d-right" data-btn="right" aria-label="Derecha"></button>
+        <button class="d-down" data-btn="down" aria-label="Abajo"></button>
+      </div>
+
+      <div class="meta">
+        <div class="pill">
+          <button data-btn="select" aria-label="Select"></button>
+          <span>SELECT</span>
+        </div>
+        <div class="pill">
+          <button data-btn="start" aria-label="Start"></button>
+          <span>START</span>
+        </div>
+      </div>
+
+      <div class="face">
+        <button class="f-a" data-btn="a" aria-label="A">A</button>
+        <button class="f-b" data-btn="b" aria-label="B">B</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

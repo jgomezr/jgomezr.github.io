@@ -1,0 +1,32 @@
+{
+  "name": "TamaBoy - Mascota Virtual",
+  "short_name": "TamaBoy",
+  "description": "Cuida a tu capibara, puma o cóndor: aliméntalo, juega con él y ayúdalo a evolucionar.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#6a4fb0",
+  "background_color": "#17151d",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
