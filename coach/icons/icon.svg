@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#241318"/>
+  <!-- anillo: compromiso + el anillo inteligente -->
+  <circle cx="256" cy="272" r="118" fill="none" stroke="#D9A441" stroke-width="26"/>
+  <!-- brasa: la energía que se blinda -->
+  <circle cx="256" cy="118" r="34" fill="#E8833A"/>
+  <circle cx="256" cy="118" r="52" fill="#E8833A" opacity="0.25"/>
+</svg>

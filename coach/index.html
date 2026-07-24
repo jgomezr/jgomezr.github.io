@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#241318">
+<meta name="description" content="Brasa — coach personal: test ISE, programa de 6 semanas, alter ego y datos del anillo.">
+<title>Brasa · Coach personal</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-palette="#D0702E,#2E9E8F,#B8862B,#9B6FD0">
+
+<header class="topbar">
+  <div>
+    <div class="eyebrow" id="top-date"></div>
+    <div class="top-title" id="top-title">Hoy</div>
+  </div>
+  <div class="top-chips">
+    <button class="chip chip-btn" id="chip-streak" title="Racha de check-ins">🔥 0</button>
+    <button class="chip chip-btn" id="chip-invoke" hidden title="Invocar alter ego">◈</button>
+  </div>
+</header>
+
+<main id="view" tabindex="-1" aria-live="polite"></main>
+
+<nav class="tabbar" aria-label="Navegación principal">
+  <a href="#/hoy" data-tab="hoy"><span class="tab-ico">☉</span>Hoy</a>
+  <a href="#/coach" data-tab="coach"><span class="tab-ico">✦</span>Coach</a>
+  <a href="#/programa" data-tab="programa"><span class="tab-ico">▤</span>Programa</a>
+  <a href="#/metricas" data-tab="metricas"><span class="tab-ico">∿</span>Métricas</a>
+  <a href="#/mas" data-tab="mas"><span class="tab-ico">⋯</span>Más</a>
+</nav>
+
+<div id="overlay-root"></div>
+<div id="toast-root" aria-live="assertive"></div>
+
+<noscript><p style="padding:2rem;color:#F4E9D7;font-family:sans-serif">Brasa necesita JavaScript.</p></noscript>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
