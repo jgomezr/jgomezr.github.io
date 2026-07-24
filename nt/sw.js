@@ -1,12 +1,17 @@
 // Notas PWA — service worker mínimo.
 // Estrategia: responde desde caché al instante (offline garantizado) y
 // actualiza la caché en segundo plano (la versión nueva entra en la siguiente apertura).
-const CACHE = 'notas-v1';
+const CACHE = 'notas-v2';
 const SHELL = ['./', './index.html'];
+const EXTRAS = ['./manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())
+    caches.open(CACHE).then(c =>
+      c.addAll(SHELL)
+        // los extras son opcionales: su ausencia no debe impedir instalar el SW
+        .then(() => Promise.allSettled(EXTRAS.map(u => c.add(u))))
+    ).then(() => self.skipWaiting())
   );
 });
 

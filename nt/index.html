@@ -1188,6 +1188,9 @@ const Crypto = {
     return new TextDecoder().decode(pt);
   },
   async setPhrase(phrase) {
+    // establecer por primera vez ≠ cambiar: en el primer caso el meta del repo
+    // (si existe) es la autoridad y debe adoptarse; en el segundo, el nuestro manda
+    const isChange = !!(await DB.getSetting('crypto'));
     const salt = this.b64(crypto.getRandomValues(new Uint8Array(16)).buffer);
     const key = await this.derive(phrase, salt, this.iter);
     const verifier = await this.encryptStr('notas-pwa-ok', key);
@@ -1201,12 +1204,14 @@ const Crypto = {
     await DB.setSetting('crypto', { salt, iter: this.iter, verifier });
     this.prevKey = this.key;   // los blobs remotos viejos se descifran con esta hasta re-subirlos
     this.key = key; this.phrase = phrase; this.saltB64 = salt;
-    // todo el repo debe re-subirse cifrado con la clave nueva
-    for (const n of App.notes.values()) {
-      if (!n.deleted || n.syncedSha) { n.pending = true; await DB.putNote(n); }
+    if (isChange) {
+      // todo el repo debe re-subirse cifrado con la clave nueva
+      for (const n of App.notes.values()) {
+        if (!n.deleted || n.syncedSha) { n.pending = true; await DB.putNote(n); }
+      }
     }
     Sync._metaSeenSha = null;
-    Sync._metaDirty = true;
+    Sync._metaDirty = isChange;
   },
   async unlock(phrase) {
     const cfg = await DB.getSetting('crypto');
@@ -1455,14 +1460,15 @@ const Sync = {
           }
         }
         // semillas locales sin editar duplicadas por una nota homónima del repo → retirar
+        // (una semilla pending pero con contenido idéntico al gemelo tampoco es una edición real)
         for (const n of App.notes.values()) {
-          if (n.seed && !n.pending && !n.syncedSha && !n.deleted &&
-              [...App.notes.values()].some(o => o.id !== n.id && !o.deleted && o.syncedSha &&
-                o.title.trim().toLowerCase() === n.title.trim().toLowerCase())) {
-            n.deleted = true;
-            await DB.putNote(n);
-            if (App.currentId === n.id) { App.currentId = null; ensureCurrentValid(); }
-          }
+          if (!n.seed || n.syncedSha || n.deleted) continue;
+          const twin = [...App.notes.values()].find(o => o.id !== n.id && !o.deleted &&
+            o.syncedSha && o.title.trim().toLowerCase() === n.title.trim().toLowerCase());
+          if (!twin || (n.pending && twin.content !== n.content)) continue;
+          n.deleted = true; n.pending = false;
+          await DB.putNote(n);
+          if (App.currentId === n.id) { App.currentId = null; ensureCurrentValid(); }
         }
 
         /* --- PUSH: subir pendientes en un solo commit --- */
@@ -1860,22 +1866,27 @@ document.addEventListener('keydown', e => {
 window.addEventListener('beforeunload', flushSave);
 window.addEventListener('online', () => Sync.run());
 
-/* ---------- Manifest PWA (en runtime: necesita start_url absoluta e icono) ---------- */
+/* ---------- Manifest PWA ---------- */
+// Un manifest.json REAL con iconos PNG es lo único que permite a Android fabricar
+// un WebAPK (app en el cajón de aplicaciones); el blob es solo fallback para
+// despliegues de un único archivo.
 if (location.protocol !== 'file:') {
-  const iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">' +
-    '<rect width="512" height="512" rx="96" fill="#1e1e2e"/>' +
-    '<text x="256" y="352" font-size="300" text-anchor="middle">📝</text></svg>';
-  const manifest = {
-    name: 'Notas', short_name: 'Notas',
-    start_url: location.href.split('#')[0],
-    display: 'standalone', background_color: '#1e1e2e', theme_color: '#1e1e2e',
-    icons: [{ src: 'data:image/svg+xml,' + encodeURIComponent(iconSvg),
-              sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
-  };
-  const link = document.createElement('link');
-  link.rel = 'manifest';
-  link.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }));
-  document.head.appendChild(link);
+  fetch('manifest.json', { method: 'HEAD' }).then(r => {
+    const link = document.createElement('link');
+    link.rel = 'manifest';
+    if (r.ok) {
+      link.href = 'manifest.json';
+    } else {
+      const manifest = {
+        name: 'Notas', short_name: 'Notas',
+        start_url: location.href.split('#')[0],
+        display: 'standalone', background_color: '#1e1e2e', theme_color: '#1e1e2e',
+        icons: [],
+      };
+      link.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }));
+    }
+    document.head.appendChild(link);
+  }).catch(() => {});
   if ('serviceWorker' in navigator)
     navigator.serviceWorker.register('sw.js').catch(() => {});   // sin sw.js (uso local) la app funciona igual
 }
