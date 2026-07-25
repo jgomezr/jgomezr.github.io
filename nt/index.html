@@ -1600,6 +1600,9 @@ const Settings = {
       <div id="s-tabs"></div>
       <div class="frm"><button id="s-tab-add" class="btn">＋ Añadir tab</button></div>
 
+      <h3>Sin conexión</h3>
+      <p class="hint" id="s-offline">Comprobando…</p>
+
       <h3>Interfaz</h3>
       <div class="frm"><label>Posición de tabs</label>
         <select id="s-tabpos" class="inp">
@@ -1661,6 +1664,20 @@ const Settings = {
     Tabs.persist(); Tabs.render(); renderList();
   },
   wire(g, c) {
+    const off = $('#s-offline');
+    if (location.protocol === 'file:') {
+      off.textContent = 'Archivo local: siempre disponible sin conexión (no usa service worker).';
+    } else if (!('caches' in window)) {
+      off.textContent = '⚠ Este navegador no soporta caché offline.';
+    } else {
+      caches.match('./index.html')
+        .then(r => {
+          off.textContent = r
+            ? '✓ Copia sin conexión lista: la app abre aunque no haya internet.'
+            : '⚠ Aún no hay copia sin conexión. Comprueba que sw.js esté subido junto a index.html y recarga la app con internet.';
+        })
+        .catch(() => { off.textContent = ''; });
+    }
     const msgGh = t => { const m = $('#s-gh-msg'); m.className = 'msg ' + (t[0] === '✓' ? 'ok' : 'err'); m.textContent = t; };
     const msgC = t => { const m = $('#s-c-msg'); m.className = 'msg ' + (t[0] === '✓' ? 'ok' : 'err'); m.textContent = t; };
     $('#s-close').onclick = () => this.close();
