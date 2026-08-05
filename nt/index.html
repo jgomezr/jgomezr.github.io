@@ -445,12 +445,12 @@ input[type=color].inp { padding: 2px; flex: 0 0 42px; width: 42px; height: 31px;
 
 <div id="lock" class="overlay hidden">
   <div class="card">
-    <h2 id="lock-title">🔒 Notas cifradas</h2>
-    <p class="hint" id="lock-hint">Introduce tu frase de cifrado para habilitar la sincronización. Tus notas locales siguen disponibles sin desbloquear.</p>
-    <div class="frm"><input id="lock-input" type="password" class="inp" placeholder="Frase de cifrado" autocomplete="current-password"></div>
+    <h2 id="lock-title">🔑 Una última vez</h2>
+    <p class="hint" id="lock-hint">El cifrado se retiró de la app: ahora las notas se suben en claro a tu repo privado. Escribe tu frase anterior UNA última vez para migrar el token y las notas; después no volverá a pedirse.</p>
+    <div class="frm"><input id="lock-input" type="password" class="inp" placeholder="Frase de cifrado anterior" autocomplete="current-password"></div>
     <div class="frm" style="justify-content:center">
-      <button id="lock-ok" class="btn">Desbloquear</button>
-      <button id="lock-skip" class="btn">Entrar sin sincronizar</button>
+      <button id="lock-ok" class="btn">Migrar</button>
+      <button id="lock-skip" class="btn">Ahora no</button>
     </div>
     <div id="lock-msg" class="msg"></div>
   </div>
@@ -1157,16 +1157,12 @@ ui.canvas.addEventListener('wheel', e => {
 }, { passive: false });
 window.addEventListener('resize', () => { if (Graph.active) Graph.resize(); });
 
-/* ---------- Cifrado (Web Crypto) ---------- */
-const Crypto = {
-  key: null, prevKey: null, phrase: null, saltB64: null, iter: 600000,
-  b64(buf) {
-    const u = new Uint8Array(buf);
-    let s = '';
-    for (let i = 0; i < u.length; i += 0x8000)
-      s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000));
-    return btoa(s);
-  },
+/* ---------- Migración desde las versiones con cifrado ---------- */
+// El cifrado E2E se retiró de la app. Este módulo solo sabe DESCIFRAR y existe
+// para una migración única: recuperar el token y las notas .enc de un repo
+// creado por una versión anterior. Cuando el repo queda limpio, se olvida todo.
+const Legacy = {
+  key: null,
   unb64(s) {
     const bin = atob(s);
     const u = new Uint8Array(bin.length);
@@ -1180,45 +1176,11 @@ const Crypto = {
       { name: 'PBKDF2', salt: this.unb64(saltB64), iterations: iter, hash: 'SHA-256' },
       mat, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
   },
-  async encryptStr(txt, key = this.key) {
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key,
-      new TextEncoder().encode(txt));
-    const out = new Uint8Array(12 + ct.byteLength);
-    out.set(iv); out.set(new Uint8Array(ct), 12);
-    return this.b64(out.buffer);
-  },
   async decryptStr(b64s, key = this.key) {
     const u = this.unb64(b64s);
     const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: u.slice(0, 12) },
       key, u.slice(12));
     return new TextDecoder().decode(pt);
-  },
-  async setPhrase(phrase) {
-    // establecer por primera vez ≠ cambiar: en el primer caso el meta del repo
-    // (si existe) es la autoridad y debe adoptarse; en el segundo, el nuestro manda
-    const isChange = !!(await DB.getSetting('crypto'));
-    const salt = this.b64(crypto.getRandomValues(new Uint8Array(16)).buffer);
-    const key = await this.derive(phrase, salt, this.iter);
-    const verifier = await this.encryptStr('notas-pwa-ok', key);
-    // re-cifrar el token si existía (requiere estar desbloqueado)
-    const gcfg = await DB.getSetting('github');
-    if (gcfg && gcfg.tokenEnc) {
-      if (!this.key) throw new Error('Desbloquea primero para cambiar la frase');
-      gcfg.tokenEnc = await this.encryptStr(await this.decryptStr(gcfg.tokenEnc), key);
-      await DB.setSetting('github', gcfg);
-    }
-    await DB.setSetting('crypto', { salt, iter: this.iter, verifier });
-    this.prevKey = this.key;   // los blobs remotos viejos se descifran con esta hasta re-subirlos
-    this.key = key; this.phrase = phrase; this.saltB64 = salt;
-    if (isChange) {
-      // todo el repo debe re-subirse cifrado con la clave nueva
-      for (const n of App.notes.values()) {
-        if (!n.deleted || n.syncedSha) { n.pending = true; await DB.putNote(n); }
-      }
-    }
-    Sync._metaSeenSha = null;
-    Sync._metaDirty = isChange;
   },
   async unlock(phrase) {
     const cfg = await DB.getSetting('crypto');
@@ -1227,31 +1189,27 @@ const Crypto = {
     try {
       if (await this.decryptStr(cfg.verifier, key) !== 'notas-pwa-ok') return false;
     } catch { return false; }
-    this.key = key; this.phrase = phrase;
-    this.saltB64 = cfg.salt; this.iter = cfg.iter || 600000;
+    this.key = key;
     return true;
   },
-  // adoptar el salt del repo remoto (repo creado en otro dispositivo)
-  async adopt(key, saltB64, iter, plainToken) {
-    const verifier = await this.encryptStr('notas-pwa-ok', key);
-    await DB.setSetting('crypto', { salt: saltB64, iter, verifier });
-    const gcfg = await DB.getSetting('github');
-    if (gcfg && plainToken) {
-      gcfg.tokenEnc = await this.encryptStr(plainToken, key);
-      await DB.setSetting('github', gcfg);
+  // pasa el token guardado cifrado a claro; la clave queda en memoria para las .enc del repo
+  async applyKey() {
+    const g = await DB.getSetting('github');
+    if (g && g.tokenEnc) {
+      try { g.token = await this.decryptStr(g.tokenEnc); } catch {}
+      delete g.tokenEnc;
+      await DB.setSetting('github', g);
     }
-    this.key = key; this.saltB64 = saltB64; this.iter = iter;
+  },
+  async finish() {
+    this.key = null;
+    await DB.setSetting('crypto', null);
   },
 };
 
+// Diálogo de migración: pide la frase antigua una única vez
 const Lock = {
-  repoMeta: null,   // si está presente, valida contra el canario del REPO (frase cambiada en otro dispositivo)
-  show(repoMeta = null) {
-    this.repoMeta = repoMeta;
-    $('#lock-title').textContent = repoMeta ? '🔑 Frase del repositorio' : '🔒 Notas cifradas';
-    $('#lock-hint').textContent = repoMeta
-      ? 'La frase de cifrado cambió en otro dispositivo. Introduce la frase ACTUAL del repositorio para adoptarla aquí.'
-      : 'Introduce tu frase de cifrado para habilitar la sincronización. Tus notas locales siguen disponibles sin desbloquear.';
+  show() {
     ui.lock.classList.remove('hidden');
     ui.lockMsg.className = 'msg';
     ui.lockMsg.textContent = '';
@@ -1264,36 +1222,13 @@ const Lock = {
     if (!p) return;
     ui.lockMsg.className = 'msg';
     ui.lockMsg.textContent = 'Verificando… (unos segundos)';
-    if (this.repoMeta) return this.adoptRepo(p);
-    const ok = await Crypto.unlock(p);
-    if (ok) { this.hide(); Sync.run(); }
-    else { ui.lockMsg.className = 'msg err'; ui.lockMsg.textContent = 'Frase incorrecta'; }
-  },
-  async adoptRepo(p) {
-    const mj = this.repoMeta;
-    try {
-      const key2 = await Crypto.derive(p, mj.salt, mj.iter || 600000);
-      if (await Crypto.decryptStr(mj.canary, key2) !== 'notas-pwa-ok') throw new Error();
-      let token = null;
-      const gcfg = await DB.getSetting('github');
-      if (gcfg && gcfg.tokenEnc && Crypto.key) {
-        try { token = await Crypto.decryptStr(gcfg.tokenEnc); } catch {}
-      }
-      await Crypto.adopt(key2, mj.salt, mj.iter || 600000, token);
-      if (!token && gcfg && gcfg.tokenEnc) {
-        delete gcfg.tokenEnc;   // era irrecuperable con la frase vieja
-        await DB.setSetting('github', gcfg);
-      }
-      Crypto.phrase = p;
-      this.repoMeta = null;
-      Sync._repoMeta = null;
-      Sync._metaSeenSha = null;
+    if (await Legacy.unlock(p)) {
+      await Legacy.applyKey();
       this.hide();
-      if (token) Sync.run();
-      else Sync.setState('error', 'Vuelve a introducir el token en Ajustes (estaba cifrado con la frase anterior)');
-    } catch {
+      Sync.run();
+    } else {
       ui.lockMsg.className = 'msg err';
-      ui.lockMsg.textContent = 'Esa no es la frase actual del repositorio';
+      ui.lockMsg.textContent = 'Frase incorrecta';
     }
   },
 };
@@ -1301,12 +1236,12 @@ const Lock = {
 /* ---------- Sync con GitHub (Git Data API) ---------- */
 const Sync = {
   running: false, timer: null, state: 'off', msg: '',
-  _metaSeenSha: null, _metaDirty: false, _repoMeta: null,
+  _needLegacy: false,
   setState(s, msg = '') {
     this.state = s; this.msg = msg;
     const map = {
       off: 'Sync no configurado — clic para configurar',
-      locked: '🔒 Bloqueado — clic para desbloquear',
+      locked: '🔑 Migración pendiente — clic para escribir la frase anterior',
       working: '⟳ Sincronizando…',
       idle: '✓ Sincronizado',
       pending: '● Cambios pendientes',
@@ -1323,12 +1258,13 @@ const Sync = {
   async run(manual = false) {
     if (this.running) return;
     const gcfg = await DB.getSetting('github');
-    if (!gcfg || !gcfg.repo || !gcfg.tokenEnc) {
+    if (!gcfg || !gcfg.repo || (!gcfg.token && !gcfg.tokenEnc)) {
       this.setState('off');
       if (manual) Settings.open();
       return;
     }
-    if (!Crypto.key) {
+    if (!gcfg.token) {
+      // el token sigue cifrado por la versión anterior: hace falta la frase una vez
       this.setState('locked');
       if (manual) Lock.show();
       return;
@@ -1337,9 +1273,10 @@ const Sync = {
     flushSave();   // lo tecleado en la ventana de debounce debe contar como pending antes del pull
     this.running = true;
     this.setState('working');
+    this._needLegacy = false;
     let conflicts = 0;
     try {
-      const token = await Crypto.decryptStr(gcfg.tokenEnc);
+      const token = gcfg.token;
       const [owner, name] = gcfg.repo.trim().split('/');
       if (!owner || !name) throw new Error('Repositorio inválido (usa usuario/repo)');
       const B = `https://api.github.com/repos/${owner}/${name}`;
@@ -1365,10 +1302,14 @@ const Sync = {
         /* --- ref y árbol remoto --- */
         let refR = await api(`${B}/git/ref/heads/${encodeURIComponent(branch)}`, {}, [404]);
         if (refR.status === 404) {
-          // repo o rama vacíos: crear meta.json vía contents API inicializa la rama
-          await api(`${B}/contents/meta.json`, {
+          // repo o rama vacíos: crear un README vía contents API inicializa la rama
+          await api(`${B}/contents/README.md`, {
             method: 'PUT',
-            body: JSON.stringify({ message: 'notas: init', content: btoa(await this.metaJson()), branch }),
+            body: JSON.stringify({
+              message: 'notas: init',
+              content: btoa('# Notas\n\nRepositorio sincronizado por notas-pwa.\n'),
+              branch,
+            }),
           });
           refR = await api(`${B}/git/ref/heads/${encodeURIComponent(branch)}`);
         }
@@ -1376,36 +1317,17 @@ const Sync = {
         const commit = await (await api(`${B}/git/commits/${headSha}`)).json();
         const tree = await (await api(`${B}/git/trees/${commit.tree.sha}?recursive=1`)).json();
         const entries = new Map();
-        let metaEntry = null;
+        const legacyPaths = [];   // restos cifrados de versiones anteriores → borrar en el push
         for (const e of tree.tree || []) {
-          if (e.path === 'meta.json') metaEntry = e;
-          const m = e.path.match(/^notes\/([0-9a-f-]{36})\.enc$/);
-          if (m) entries.set(m[1], e);
-        }
-
-        /* --- validar frase contra el repo (cada vez que cambia el meta remoto) --- */
-        if (metaEntry && metaEntry.sha !== this._metaSeenSha && !this._metaDirty) {
-          const raw = (await (await api(`${B}/git/blobs/${metaEntry.sha}`)).json()).content.replace(/\s/g, '');
-          const mj = JSON.parse(new TextDecoder().decode(Crypto.unb64(raw)));
-          if (mj.salt && mj.salt !== Crypto.saltB64) {
-            const key2 = await Crypto.derive(Crypto.phrase, mj.salt, mj.iter || 600000);
-            let ok = false;
-            try { ok = (await Crypto.decryptStr(mj.canary, key2)) === 'notas-pwa-ok'; } catch {}
-            if (!ok) {
-              this._repoMeta = mj;
-              throw new Error('La frase cambió en otro dispositivo — clic aquí para introducir la actual');
-            }
-            await Crypto.adopt(key2, mj.salt, mj.iter || 600000, token);
-          } else if (mj.canary) {
-            let ok = false;
-            try { ok = (await Crypto.decryptStr(mj.canary)) === 'notas-pwa-ok'; } catch {}
-            if (!ok) {
-              this._repoMeta = mj;
-              throw new Error('La frase no coincide con la del repositorio — clic aquí para corregirla');
-            }
+          if (e.path === 'meta.json') { legacyPaths.push(e.path); continue; }
+          let m = e.path.match(/^notes\/([0-9a-f-]{36})\.json$/);
+          if (m) { entries.set(m[1], { sha: e.sha, enc: false }); continue; }
+          m = e.path.match(/^notes\/([0-9a-f-]{36})\.enc$/);
+          if (m) {
+            legacyPaths.push(e.path);
+            // el orden alfabético garantiza que un .json posterior del mismo id gana
+            if (!entries.has(m[1])) entries.set(m[1], { sha: e.sha, enc: true });
           }
-          this._repoMeta = null;
-          this._metaSeenSha = metaEntry.sha;
         }
 
         /* --- PULL: bajar lo que cambió en remoto --- */
@@ -1413,11 +1335,18 @@ const Sync = {
           const local = App.notes.get(id);
           if (local && local.syncedSha === e.sha) continue;
           const blob = await (await api(`${B}/git/blobs/${e.sha}`)).json();
+          const raw = blob.content.replace(/\s/g, '');
           let remote;
           try {
-            remote = JSON.parse(await this.dec2(blob.content.replace(/\s/g, '')));
+            remote = JSON.parse(e.enc
+              ? await Legacy.decryptStr(raw)
+              : new TextDecoder().decode(Legacy.unb64(raw)));
           } catch {
-            throw new Error('No se pudo descifrar una nota del repo (¿frase distinta?)');
+            if (e.enc) {
+              this._needLegacy = true;
+              throw new Error('Notas cifradas por la versión anterior — clic aquí para escribir la frase y migrarlas');
+            }
+            throw new Error('No se pudo leer una nota del repo');
           }
           if (!local) {
             const n = { ...remote, deleted: false, syncedSha: e.sha, pending: false };
@@ -1478,31 +1407,40 @@ const Sync = {
           if (App.currentId === n.id) { App.currentId = null; ensureCurrentValid(); }
         }
 
+        /* --- migración: quedan restos cifrados → re-subir TODO en claro y borrarlos --- */
+        if (legacyPaths.length) {
+          for (const n of App.notes.values())
+            if (!n.deleted && !n.pending) { n.pending = true; await DB.putNote(n); }
+        }
+
         /* --- PUSH: subir pendientes en un solo commit --- */
         const pend = [...App.notes.values()].filter(n => n.pending);
         const items = [];
         const pushedById = new Map();   // id → {sha, mod}: qué versión exacta se subió
         for (const n of pend) {
-          const path = `notes/${n.id}.enc`;
+          const path = `notes/${n.id}.json`;
           if (n.deleted) {
-            if (entries.has(n.id)) items.push({ path, mode: '100644', type: 'blob', sha: null });
+            const e = entries.get(n.id);
+            // los .enc caen todos con la limpieza de migración
+            if (e && !e.enc) items.push({ path, mode: '100644', type: 'blob', sha: null });
           } else {
             const snapMod = n.modified;
-            const enc = await Crypto.encryptStr(JSON.stringify({
-              id: n.id, title: n.title, content: n.content,
-              created: n.created, modified: n.modified,
-            }));
             const blob = await (await api(`${B}/git/blobs`, {
               method: 'POST',
-              body: JSON.stringify({ content: enc, encoding: 'base64' }),
+              body: JSON.stringify({
+                content: JSON.stringify({
+                  id: n.id, title: n.title, content: n.content,
+                  created: n.created, modified: n.modified,
+                }),
+                encoding: 'utf-8',
+              }),
             })).json();
             items.push({ path, mode: '100644', type: 'blob', sha: blob.sha });
             pushedById.set(n.id, { sha: blob.sha, mod: snapMod });
           }
         }
-        const pushMeta = !metaEntry || this._metaDirty;
-        if (pushMeta)
-          items.push({ path: 'meta.json', mode: '100644', type: 'blob', content: await this.metaJson() });
+        for (const p of legacyPaths)
+          items.push({ path: p, mode: '100644', type: 'blob', sha: null });
         if (items.length) {
           const nt = await (await api(`${B}/git/trees`, {
             method: 'POST',
@@ -1531,7 +1469,8 @@ const Sync = {
           }
           await DB.putNote(n);
         }
-        if (pushMeta) { this._metaDirty = false; this._metaSeenSha = null; Crypto.prevKey = null; }
+        // el repo quedó sin restos cifrados: olvidar el material criptográfico antiguo
+        if (await DB.getSetting('crypto')) await Legacy.finish();
         break;
       }
       await DB.setSetting('lastSync', Date.now());
@@ -1548,51 +1487,26 @@ const Sync = {
       this.running = false;
     }
   },
-  // descifra con la clave actual y, si falla, con la anterior (cambio de frase en curso)
-  async dec2(b64) {
-    try { return await Crypto.decryptStr(b64); }
-    catch (e) {
-      if (Crypto.prevKey) return Crypto.decryptStr(b64, Crypto.prevKey);
-      throw e;
-    }
-  },
-  async metaJson() {
-    const c = await DB.getSetting('crypto');
-    return JSON.stringify({ app: 'notas-pwa', salt: c.salt, iter: c.iter, canary: c.verifier });
-  },
 };
 
 /* ---------- Ajustes ---------- */
 const Settings = {
   async open() {
     const g = (await DB.getSetting('github')) || {};
-    const c = await DB.getSetting('crypto');
     ui.modalCard.innerHTML = `
       <h2>⚙ Ajustes</h2>
-
-      <h3>Cifrado</h3>
-      <p class="hint">${c
-        ? (Crypto.key ? 'Frase configurada y desbloqueada. Puedes cambiarla abajo.'
-                      : 'Frase configurada (bloqueada). <b>Desbloquea antes de cambiarla.</b>')
-        : 'Configura una frase de paso: cifra las notas antes de subirlas y protege el token. <b>Si la olvidas, lo subido al repo es irrecuperable.</b>'}</p>
-      <div class="frm"><label>${c ? 'Nueva frase' : 'Frase'}</label><input id="s-p1" type="password" class="inp" autocomplete="new-password"></div>
-      <div class="frm"><label>Confirmar</label><input id="s-p2" type="password" class="inp" autocomplete="new-password"></div>
-      <div class="frm">
-        <button id="s-crypto" class="btn">${c ? 'Cambiar frase' : 'Establecer frase'}</button>
-        ${c && !Crypto.key ? '<button id="s-unlock" class="btn">🔓 Desbloquear</button>' : ''}
-      </div>
-      <div id="s-c-msg" class="msg"></div>
 
       <h3>Sincronización con GitHub</h3>
       <div class="frm"><label>Repositorio</label><input id="s-repo" class="inp" placeholder="usuario/repo" value="${esc(g.repo || '')}"></div>
       <div class="frm"><label>Rama</label><input id="s-branch" class="inp" value="${esc(g.branch || 'main')}"></div>
-      <div class="frm"><label>Token (PAT)</label><input id="s-token" type="password" class="inp" placeholder="${g.tokenEnc ? '•••••• (guardado)' : 'github_pat_…'}" autocomplete="off"></div>
+      <div class="frm"><label>Token (PAT)</label><input id="s-token" type="password" class="inp" placeholder="${g.token || g.tokenEnc ? '•••••• (guardado)' : 'github_pat_…'}" autocomplete="off"></div>
       <div class="frm">
         <button id="s-test" class="btn">Probar conexión</button>
         <button id="s-save-gh" class="btn">Guardar</button>
         <button id="s-sync" class="btn">⟳ Sincronizar</button>
       </div>
-      <p class="hint">Crea un <i>fine-grained token</i> en GitHub → Settings → Developer settings, con acceso solo a ese repo y permiso <b>Contents: read &amp; write</b>. Se guarda cifrado en este dispositivo. Requiere frase de cifrado configurada.</p>
+      <p class="hint">Crea un <i>fine-grained token</i> en GitHub → Settings → Developer settings, con acceso solo a ese repo y permiso <b>Contents: read &amp; write</b>. Las notas y el token se guardan <b>sin cifrar</b>: usa un repo privado y no compartas este dispositivo.</p>
+      ${g.tokenEnc && !g.token ? '<p class="hint">🔑 El token está cifrado por la versión anterior de la app: pulsa el estado de sincronización (abajo a la izquierda) y escribe tu frase una última vez, o pega el token de nuevo aquí.</p>' : ''}
       <div id="s-gh-msg" class="msg"></div>
 
       <h3>Tabs</h3>
@@ -1614,7 +1528,7 @@ const Settings = {
       <div class="frm" style="justify-content:flex-end;margin-top:16px"><button id="s-close" class="btn">Cerrar</button></div>`;
     ui.modal.classList.remove('hidden');
     this.renderTabRows();
-    this.wire(g, c);
+    this.wire(g);
   },
   close() { ui.modal.classList.add('hidden'); },
   renderTabRows() {
@@ -1663,7 +1577,7 @@ const Settings = {
     }
     Tabs.persist(); Tabs.render(); renderList();
   },
-  wire(g, c) {
+  wire(g) {
     const off = $('#s-offline');
     if (location.protocol === 'file:') {
       off.textContent = 'Archivo local: siempre disponible sin conexión (no usa service worker).';
@@ -1679,7 +1593,6 @@ const Settings = {
         .catch(() => { off.textContent = ''; });
     }
     const msgGh = t => { const m = $('#s-gh-msg'); m.className = 'msg ' + (t[0] === '✓' ? 'ok' : 'err'); m.textContent = t; };
-    const msgC = t => { const m = $('#s-c-msg'); m.className = 'msg ' + (t[0] === '✓' ? 'ok' : 'err'); m.textContent = t; };
     $('#s-close').onclick = () => this.close();
     $('#s-tab-add').onclick = () => { Tabs.add(); Tabs.render(); this.renderTabRows(); };
     $('#s-tabpos').onchange = e => {
@@ -1687,32 +1600,11 @@ const Settings = {
       document.body.classList.toggle('tabs-side', Tabs.pos === 'side');
       Tabs.saveUi();
     };
-    const unlockBtn = $('#s-unlock');
-    if (unlockBtn) unlockBtn.onclick = () => { this.close(); Lock.show(); };
-    $('#s-crypto').onclick = async () => {
-      const p1 = $('#s-p1').value, p2 = $('#s-p2').value;
-      if (p1.length < 8) return msgC('Mínimo 8 caracteres');
-      if (p1 !== p2) return msgC('Las frases no coinciden');
-      if (c && !Crypto.key) return msgC('Desbloquea con la frase actual antes de cambiarla');
-      if (Sync.running) return msgC('Espera a que termine la sincronización en curso');
-      msgC('✓ Derivando clave… (unos segundos)');
-      try {
-        await Crypto.setPhrase(p1);
-        Sync.later();
-        await this.open();   // re-render con el estado fresco de cifrado
-        const m = $('#s-c-msg');
-        m.className = 'msg ok';
-        m.textContent = '✓ Frase guardada. Las notas se re-subirán cifradas en el próximo sync.';
-      } catch (e) { msgC(e.message); }
-    };
     $('#s-test').onclick = async () => {
       try {
         const repo = $('#s-repo').value.trim();
-        let token = $('#s-token').value.trim();
-        if (!token) {
-          if (!g.tokenEnc || !Crypto.key) return msgGh('Escribe el token (o desbloquea)');
-          token = await Crypto.decryptStr(g.tokenEnc);
-        }
+        const token = $('#s-token').value.trim() || g.token;
+        if (!token) return msgGh('Escribe el token');
         const r = await fetch(`https://api.github.com/repos/${repo}`, {
           headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' },
         });
@@ -1730,14 +1622,13 @@ const Settings = {
       const cfg = (await DB.getSetting('github')) || {};
       cfg.repo = repo; cfg.branch = branch;
       if (token) {
-        if (!Crypto.key) return msgGh('Configura y desbloquea la frase de cifrado primero');
-        cfg.tokenEnc = await Crypto.encryptStr(token);
+        cfg.token = token;
+        delete cfg.tokenEnc;   // un token nuevo en claro sustituye al cifrado antiguo
         $('#s-token').value = '';
         $('#s-token').placeholder = '•••••• (guardado)';
       }
       await DB.setSetting('github', cfg);
       Object.assign(g, cfg);   // el snapshot capturado por los demás handlers debe ver el token nuevo
-      Sync._metaSeenSha = null;
       msgGh('✓ Guardado');
       Sync.run();
     };
@@ -1859,7 +1750,7 @@ ui.syncBtn.addEventListener('click', () => Sync.run(true));
 ui.syncStatus.addEventListener('click', () => {
   if (Sync.state === 'off') Settings.open();
   else if (Sync.state === 'locked') Lock.show();
-  else if (Sync.state === 'error' && Sync._repoMeta) Lock.show(Sync._repoMeta);
+  else if (Sync.state === 'error' && Sync._needLegacy) Lock.show();
   else Sync.run(true);
 });
 ui.preview.addEventListener('click', e => {
@@ -1925,7 +1816,7 @@ if (location.protocol !== 'file:') {
 /* ---------- Arranque ---------- */
 const BIENVENIDA = `# Bienvenido a tus Notas
 
-Tu app personal en un solo archivo. Todo se guarda **automáticamente** en este navegador (IndexedDB) y, si lo configuras, se sincroniza **cifrado** con un repo privado de GitHub.
+Tu app personal en un solo archivo. Todo se guarda **automáticamente** en este navegador (IndexedDB) y, si lo configuras, se sincroniza con un repo **privado** de GitHub.
 
 ## Atajos
 
@@ -1944,9 +1835,9 @@ Cualquier nota con el tag #plantilla sirve de plantilla: úsalas desde la paleta
 
 ## Sincronización
 
-1. En ⚙ Ajustes, establece tu **frase de cifrado** (⚠ si la olvidas, lo subido es irrecuperable).
-2. Crea un repo **privado** en GitHub y un *fine-grained token* con permiso Contents.
-3. Pega \`usuario/repo\` y el token, y pulsa Sincronizar. En otro dispositivo: mismo repo, mismo token, misma frase.`;
+1. Crea un repo **privado** en GitHub y un *fine-grained token* con permiso Contents.
+2. En ⚙ Ajustes, pega \`usuario/repo\` y el token, y pulsa Sincronizar.
+3. En otro dispositivo: misma URL de la app, mismo repo y mismo token.`;
 
 const TPL_DIARIO = `#plantilla
 
@@ -1987,13 +1878,13 @@ async function init() {
   } else {
     ensureCurrentValid();
   }
-  const c = await DB.getSetting('crypto');
-  if (c) {
-    Crypto.saltB64 = c.salt;
-    Crypto.iter = c.iter || 600000;
-    const g = await DB.getSetting('github');
-    if (g && g.repo && g.tokenEnc) { Lock.show(); Sync.setState('locked'); }
-    else Sync.setState('off');
+  const g = await DB.getSetting('github');
+  if (g && g.repo && g.tokenEnc && !g.token) {
+    // token cifrado por la versión anterior: migrar con la frase, una única vez
+    Sync.setState('locked');
+    Lock.show();
+  } else if (g && g.repo && g.token) {
+    Sync.run();
   } else {
     Sync.setState('off');
   }

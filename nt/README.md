@@ -1,6 +1,6 @@
 # Notas — PWA personal estilo Obsidian
 
-App de notas en markdown en un solo `index.html`: sin framework, sin build, sin backend y sin login. Enlaces bidireccionales, tabs por tag, vista de grafo, cifrado de extremo a extremo y sincronización con un repo privado de GitHub. Regla del proyecto: **simplicidad y utilidad ante todo**.
+App de notas en markdown en un solo `index.html`: sin framework, sin build, sin backend y sin login. Enlaces bidireccionales, tabs por tag, vista de grafo y sincronización con un repo privado de GitHub. Regla del proyecto: **simplicidad y utilidad ante todo**.
 
 ## Archivos
 
@@ -11,7 +11,7 @@ App de notas en markdown en un solo `index.html`: sin framework, sin build, sin 
 | `manifest.json` + `icon-192.png` + `icon-512.png` | Necesarios para que Android la instale como app real (WebAPK) |
 | `src/` | Fuentes editables y `build.sh` que regenera `index.html` |
 
-**Despliegue** = subir los 5 primeros a un repo público con GitHub Pages. Las notas nunca están ahí: viven cifradas en otro repo privado.
+**Despliegue** = subir los 5 primeros a un repo público con GitHub Pages. Las notas nunca están ahí: viven en otro repo **privado**.
 
 ## Uso
 
@@ -24,17 +24,18 @@ App de notas en markdown en un solo `index.html`: sin framework, sin build, sin 
 ## Sincronización (una vez por dispositivo)
 
 1. Crea un repo **privado** en GitHub (solo para notas) y un *fine-grained token*: acceso únicamente a ese repo, permiso **Contents: Read and write** (Metadata se activa solo). Ningún otro permiso.
-2. En ⚙ Ajustes: establece la **frase de cifrado** → pega `usuario/repo` y el token → "Probar conexión" (debe decir *privado*) → Guardar.
-3. **Segundo dispositivo**: misma URL de la app, y en Ajustes la MISMA frase + mismo repo + token. Al sincronizar adopta la configuración del repo y baja todo; las notas de bienvenida locales se retiran solas.
+2. En ⚙ Ajustes: pega `usuario/repo` y el token → "Probar conexión" (debe decir *privado*) → Guardar.
+3. **Segundo dispositivo**: misma URL de la app y, en Ajustes, mismo repo + token. Al sincronizar baja todo; las notas de bienvenida locales se retiran solas.
 
 Estados en la barra inferior del panel: `✓` sincronizado · `●` cambios pendientes (sube solo a los 15 s) · `⚠` error (el texto dice la causa; clic actúa en consecuencia).
 
-## Cifrado
+Las notas viven en el repo como `notes/<uuid>.json` en texto claro: puedes leerlas (y hasta editarlas con cuidado) desde GitHub web.
 
-- AES-256-GCM con clave derivada de tu frase (PBKDF2, 600k iteraciones). La frase nunca se guarda; el token se guarda cifrado.
-- **Todo lo que sube a GitHub va cifrado** (hasta los nombres de archivo son UUIDs). Consecuencia: el repo solo es legible desde esta app. Localmente las notas están en claro (tu dispositivo es tuyo).
-- ⚠ **Si olvidas la frase, lo del repo es irrecuperable.** Las notas locales de cada dispositivo siguen legibles.
-- **Cambiar la frase**: hazlo en UN dispositivo (re-sube todo re-cifrado) y sincroniza pronto los demás — a cada uno le saldrá un diálogo pidiendo "la frase actual del repositorio"; al escribirla la adoptan. Si el token estaba cifrado con la frase vieja y ese dispositivo no la recuerda, habrá que pegar el token de nuevo.
+## Seguridad
+
+- **Sin cifrado**: las notas suben en claro; la privacidad la da el repo privado y el token con permisos mínimos. El token se guarda sin cifrar en el navegador — no uses la app en un dispositivo compartido.
+- **Migración desde la versión cifrada**: al abrir la app tras actualizar, pide tu antigua frase **una única vez** para descifrar el token y las notas del repo. En el siguiente sync todo se re-sube en claro y los archivos `.enc` y `meta.json` se borran del repo. Consejo: sincroniza y actualiza (abre online) todos tus dispositivos antes, y hazlo primero en el que esté más al día.
+- Si no recuerdas la frase: pulsa "Ahora no" y pega el token de nuevo en Ajustes; tus notas locales están en claro y se re-suben igualmente (solo se perdería lo que estuviera únicamente cifrado en el repo).
 
 ## Conflictos
 
@@ -60,8 +61,8 @@ Si una nota cambió en dos dispositivos sin sincronizar en medio, se conservan l
 |---|---|
 | `GitHub 401` | Token caducado o mal pegado → genera/pega uno nuevo |
 | `GitHub 404` | Repo o rama mal escritos en Ajustes |
-| `La frase cambió en otro dispositivo…` | Clic en el mensaje e introduce la frase actual |
-| `No se pudo descifrar una nota…` | La frase no corresponde a este repo |
+| `🔑 Migración pendiente` | El token sigue cifrado por la versión anterior → clic y escribe la frase antigua (o pega el token de nuevo en Ajustes) |
+| `Notas cifradas por la versión anterior…` | Quedan `.enc` en el repo → clic y escribe la frase antigua para migrarlas |
 | `Sin conexión` | Se reintenta solo al volver la red |
 
 ## Limitaciones conocidas
@@ -69,4 +70,4 @@ Si una nota cambió en dos dispositivos sin sincronizar en medio, se conservan l
 - Dos notas con el mismo título hacen ambiguos los `[[enlaces]]` por título.
 - El buscador recorre todo el texto en vivo (sobra hasta miles de notas; sin índice).
 - Notas muy grandes (>100 KB) pueden ralentizar el resaltado del editor.
-- El repo cifrado no es legible desde Obsidian/GitHub web — es el precio del E2E elegido a propósito.
+- Los archivos del repo se llaman por UUID, no por título: legibles desde GitHub web, pero no es un vault de Obsidian.
