@@ -1,7 +1,7 @@
 // Notas PWA — service worker mínimo.
 // Estrategia: responde desde caché al instante (offline garantizado) y
 // actualiza la caché en segundo plano (la versión nueva entra en la siguiente apertura).
-const CACHE = 'notas-v3';
+const CACHE = 'notas-v4';
 const SHELL = ['./', './index.html'];
 const EXTRAS = ['./manifest.json', './icon-192.png', './icon-512.png'];
 
