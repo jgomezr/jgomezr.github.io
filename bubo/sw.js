@@ -1,6 +1,6 @@
 // Service Worker - Cache del app shell, network-first para API
 
-const CACHE_NAME = 'rover-scout-v7';
+const CACHE_NAME = 'rover-scout-v8';
 const SHELL_FILES = [
   './',
   './index.html',
