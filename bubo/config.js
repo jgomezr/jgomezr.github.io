@@ -9,7 +9,7 @@ export const CONFIG = {
 
   // URL del Apps Script desplegado (para escritura)
   // Ver apps-script-code.js para instrucciones de despliegue
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzGjx0-jlFZGVKYbMpeSc-40vRwvK_MbIfKVM9VR-s8RTDTYZIBQ7J9KhMfhY0zNkKc/exec',
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxWSpmoz2ldxtT7tr--A-bnG2d7meV78PSf8VH2BBn3SlobHZe1bCEG10CjBsUKr254/exec',
 
   // Nombre de la hoja (pestaña) en el spreadsheet
   SHEET_NAME: 'PA',
